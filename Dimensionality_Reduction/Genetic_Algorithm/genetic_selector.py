@@ -1,6 +1,6 @@
 # genetic_selector - Genetic algorithm for feature selection
 # Juan Carlos Ruiz García - September 2020
-# Juan Carlos가 작성한 genetic_selector 코드를 이용함
+
 
 import multiprocessing as mp
 import numbers
@@ -13,8 +13,71 @@ from sklearn.base import is_classifier
 from sklearn.model_selection import cross_validate
 from sklearn.model_selection._split import check_cv
 
+"""
+Genetic algorithm used to select the best features from a dataset
+"""
 
-class GA:
+
+class GeneticSelector:
+    """Feature selection with genetic algorithm.
+    Parameters
+    --------------------
+    estimator : object
+        A supervised learning estimator with a `fit` method from
+        Scikit-learn.
+    scoring : str, callable, or None (default: None)
+        If None (default), uses 'accuracy' for sklearn classifiers
+        and 'r2' for sklearn regressors.
+        If str, uses a sklearn scoring metric string identifier, for example
+        {accuracy, f1, precision, recall, roc_auc} for classifiers,
+        {'mean_absolute_error', 'mean_squared_error'/'neg_mean_squared_error',
+        'median_absolute_error', 'r2'} for regressors.
+    cv : int, cross-validation generator or iterable, default=None
+        Determines the cross-validation splitting strategy.
+        Possibilities are:
+
+        - None, to use the default 5-fold cross validation,
+        - int, to specify the number of folds in a `(Stratified)KFold`,
+        - :term:`CV splitter`,
+        - An iterable yielding (train, test) splits as arrays of indices.
+    n_gen : int, default: 50
+        Determines the maximum number of generations to be carry out.
+    population_size : int, default: 100
+        Determines the size of the population (number of chromosomes).
+    crossover_rate : float, default: 0.7
+        Defines the crossing probability. It must be a value between 0.0 and
+        1.0.
+    mutation_rate : double, default: 0.1
+        Defines the mutation probability. It must be a value between 0.0 and
+        1.0.
+    tournament_k : int, default: 2
+        Defines the size of the tournament carried out in the selection
+        process. Number of chromosomes facing each other in each tournament.
+    calc_train_score : bool, default=False
+        Whether or not to calculate the scores obtained during the training
+        process. The calculation of training scores is used to obtain
+        information on how different parameter settings affect the
+        overfitting/underfitting trade-off. However, calculating the scores in
+        the training set can be computationally expensive and is not strictly
+        necessary to select the parameters that produce the best generalisation
+        performance.
+    initial_best_chromosome: np.ndarray, default=None
+        A 1-dimensional binary matrix of size equal to the number of features
+        (M). Defines the best chromosome (subset of features) in the initial
+        population.
+    n_jobs : int, default 1
+        Number of cores to run in parallel.
+        By default a single-core is used. `n_jobs`=-1 means the maximum number
+        of cores on the machine. If the inserted `n_jobs` is greater than the
+        maximum number of cores on the machine, then the value is set to the
+        maximum number of cores on the machine.
+    random_state : int or RandomState instance, default=None
+        Controls the randomness of the life cycle in each population. Enter an
+        integer for reproducible output.
+    verbose : int, default=0
+        Control the output verbosity level. It must be an integer value between
+        0 and 2.
+    """
 
     def __init__(self, estimator: object, scoring: str = None, cv: int = 5,
                  n_gen: int = 50, population_size: int = 100, crossover_rate:
@@ -214,12 +277,39 @@ class GA:
     def __save_output_results(self, val_score: float,
                               best_current_chromosome: np.ndarray,
                               train_score: float = None):
+        """
+
+        Private function to save the output results in their respective
+        variables.
+
+        Args:
+            val_score (float): Best validation score achieved in the present
+            generation for the best chromosome.
+            train_score (float): Trainig score achieved in the present
+            generation for the best chromosome.
+            best_current_chromosome (np.ndarray): That chromosome whose
+                val_score was the best one found in the present generation.
+        """
         self.val_scores.append(val_score)
         if train_score is not None:
             self.train_scores.append(train_score)
         self.chromosomes_history.append(best_current_chromosome)
 
     def support(self) -> np.ndarray:
+        """
+            Return an array with 4 values:
+                - best_chromosome : tuple
+                    Tuple with the values (np.ndarray, float, int) =>
+                    (chromosome, score, i_gen)
+                - val_scores : np.ndarray
+                    An array with validation scores during each generation.
+                - train_scores : np.ndarray
+                    An array with training scores during each generation. Could
+                    be `None` if self.calc_train_score = False.
+                - chromosomes_history : np.ndarray
+                    An array with multiple mask of selected features, each one
+                    for the best chromosome found in each generation.
+        """
 
         return np.array([
             self.best_chromosome,
