@@ -11,7 +11,7 @@
         - **Genetic algorithm** (●)
     * 비지도학습 차원 축소 방법 
         - **Principal component analysis (PCA)** (●)
-        - **Multi-dimensional scaling** (MDS) (●)
+        - Multi-dimensional scaling (MDS)
         - ISOMAP, LLE, t-SNE 
 
 ---
@@ -53,11 +53,3 @@
 
 [Principal Component Analysis](): 분포된 데이터들의 **분산을 최대화하는 직교 기저**를 찾는 것이 목적이다. 해당 직교 기저로 정사영 시켜 차원을 낮추는 방법이 바로 PCA이다. 
 ![Feature_extraction&selection2](./image/PCA.png)
-
-[Multidimensional Scaling (MDS)](): D차원의 데이터 X에 대하여 저차원 d로 차원 축소하였을 때 객체간의 거리를 최대한 보존하도록 하는 차원 축소 방법 
-![Feature_extraction&selection2](./image/MDS.png)
-
-`PCA vs MDS` 
-- PCA: 기존 데이터를 사영하였을 때 기존 데이터 분산을 최대한 보존하는 기저 발견
-- MDS: 객체 간 사이의 거리 정보를 보존하는 객체들의 좌표 시스템 발견
- 
