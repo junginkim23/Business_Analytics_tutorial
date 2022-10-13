@@ -33,7 +33,7 @@
 ---
 ## 2. Python Tutorial 
 
-본 장에서는 지도 학습 기반 & 비지도 학습 기반 차원 축소 방법 중 각각 FS, BE, SS, GA와 PCA, t_SNE 알고리즘에 대해 살펴보려 한다. 
+본 장에서는 지도 학습 기반 & 비지도 학습 기반 차원 축소 방법 중 각각 GA와 PCA 알고리즘에 대해 살펴보려 한다. 
 
 ### * Genetic Algorithm (GA)
 
