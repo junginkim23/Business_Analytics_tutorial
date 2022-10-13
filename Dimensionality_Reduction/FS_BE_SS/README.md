@@ -34,54 +34,35 @@ def forward_selection(X,y):
     y = y
   
     forward_variables = []
+    sv_per_step = [] 
+    adj_r_squared_list = []
+    steps = []
     
     sl_enter = 0.05
     sl_remove = 0.05
-
-    
-    sv_per_step = [] 
-  
-    adj_r_squared_list = []
-    
-    steps = []
     step = 0
-
 
     while len(variables) > 0:
         remainder = list(set(variables) - set(forward_variables))
         pval = pd.Series(index=remainder)
         
         for col in remainder: 
-            X = X_train[forward_variables+[col]]
-            X = sm.add_constant(X)
-            model = sm.OLS(y,X).fit(disp=0)
+            X_train = X[forward_variables+[col]]
+            X_train = sm.add_constant(X_train)
+            model = sm.OLS(y,X_train).fit(disp=0)
             pval[col] = model.pvalues[col]
     
         min_pval = pval.min()
         if min_pval < sl_enter: 
-            forward_variables.append(pval.idxmin())
-          
-            while len(forward_variables) > 0:
-                selected_X = X_train[forward_variables]
-                selected_X = sm.add_constant(selected_X)
-                selected_pval = sm.OLS(y,selected_X).fit(disp=0).pvalues[1:] 
-                max_pval = selected_pval.max()
-                if max_pval >= sl_remove: 
-                    remove_variable = selected_pval.idxmax()
-                    forward_variables.remove(remove_variable)
-                else:
-                    break
-            
+            forward_variables.append(pval.idxmin())            
             step += 1
             steps.append(step)
-            adj_r_squared = sm.OLS(y,sm.add_constant(X_train[forward_variables])).fit(disp=0).rsquared_adj
+            adj_r_squared = sm.OLS(y,sm.add_constant(X[forward_variables])).fit(disp=0).rsquared_adj
             adj_r_squared_list.append(adj_r_squared)
             sv_per_step.append(forward_variables.copy())
         else:
             break
-    return forward_variables, steps, adj_r_squared, sv_per_step
-
-return forward_variables, steps, adj_r_squared_list, sv_per_step = forward_selection(X_train,y_train)
+    return forward_variables, steps, adj_r_squared_list, sv_per_step
 
 print(sv_per_step)
 ['Mfg_Year'],
@@ -144,65 +125,3 @@ Boardcomputer,CD_Player,Powered_Windows,Sport_Model,Backseat_Divider,Metallic_Ri
 
 ### 각 step 별 선택된 변수의 조정 R 제곱 값에 대한 plot 
 ![Feature_extraction&selection2](./img/be.png)
-
-3. Stepwise Selection (SS)
-
-단계적 선택법 정의 및 수행 
-```
-def stepwise_selection(X_train, y_train):
-
-    variables=X_train.columns.tolist()
-    y = y_train 
-
-    selected_variables = [] 
-    sv_per_step = [] 
-    adjusted_r_squared = [] 
-    steps = [] 
-
-    sl_enter = 0.05
-    sl_remove = 0.05
-    step = 0
-    while len(variables) > 0:
-        remainder = list(set(variables) - set(selected_variables))
-        pval = pd.Series(index=remainder) 
-        
-        
-        for col in remainder: 
-            X = X_train[selected_variables+[col]]
-            X = sm.add_constant(X)
-            model = sm.OLS(y,X).fit(disp=0)
-            pval[col] = model.pvalues[col]
-    
-        min_pval = pval.min()
-        if min_pval < sl_enter:
-            selected_variables.append(pval.idxmin())
-            
-            while len(selected_variables) > 0:
-                selected_X = X_train[selected_variables]
-                selected_X = sm.add_constant(selected_X)
-                selected_pval = sm.OLS(y,selected_X).fit(disp=0).pvalues[1:] 
-                max_pval = selected_pval.max()
-                if max_pval >= sl_remove: 
-                    remove_variable = selected_pval.idxmax()
-                    selected_variables.remove(remove_variable)
-                else:
-                    break
-            
-            step += 1
-            steps.append(step)
-            adj_r_squared = sm.OLS(y,sm.add_constant(X_train[selected_variables])).fit(disp=0).rsquared_adj
-            adjusted_r_squared.append(adj_r_squared)
-            sv_per_step.append(selected_variables.copy())
-        else:
-            break
-    return selected_variables,steps,adjusted_r_squared,sv_per_step
-
-최종 선택 변수
-['Mfg_Year', 'Cylinders','Automatic_airco','HP','Weight','KM','Powered_Windows',
- 'Quarterly_Tax','Fuel_Type_Petrol','Guarantee_Period','BOVAG_Guarantee', 'Sport_Model','Mfr_Guarantee','Backseat_Divider','CD_Player','Tow_Bar',
- 'Boardcomputer','Mfg_Month','Age_08_04','Airco','ABS','Fuel_Type_CNG',
- 'Automatic','Metallic_Rim']
-```
-
-### 각 step 별 선택된 변수의 조정 R 제곱 값에 대한 plot 
-![Feature_extraction&selection2](./img/ss.png)
