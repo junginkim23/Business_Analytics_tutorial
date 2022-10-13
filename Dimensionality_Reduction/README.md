@@ -5,8 +5,8 @@
 1. 차원 축소란?
 2. Python tutorial 
     * 지도 학습 기반 차원 축소 방법 
-        - **Forward selection** (●)
-        - **Backward elimination** (●)
+        - Forward selection
+        - Backward elimination
         - Stepwise selection
         - **Genetic algorithm** (●)
     * 비지도학습 차원 축소 방법 
@@ -35,12 +35,7 @@
 
 본 장에서는 지도 학습 기반 & 비지도 학습 기반 차원 축소 방법 중 각각 FS, BE, SS, GA와 PCA, t_SNE 알고리즘에 대해 살펴보려 한다. 
 
-### * Forward Selection, Backward Elimination, Genetic Algorithm (GA)
-[Forward Selection (FS)](https://github.com/junginkim23/Business_Analytics_tutorial/tree/master/Dimensionality_Reduction/FS_BE_SS): 변수를 하나씩 추가해가며 모델에 대한 최적 변수를 선택하는 기법. 변수가 한 번 선택되면 절대로 제거 될 수 없다. 
-![Feature_extraction&selection2](./image/FS.png)
-
-[Backward Elimination (BE)](https://github.com/junginkim23/Business_Analytics_tutorial/tree/master/Dimensionality_Reduction/FS_BE_SS): 모든 입력 변수를 사용했을 때의 성능을 기준으로 변수를 하나씩 제거할 때 성능 하락이 없거나 미비하다면 해당 변수를 제거하고 성능의 변화가 없을 때까지 진행. 변수가 한 번 제거되면 절대로 다시 선택될 수 없다.
-![Feature_extraction&selection2](./image/BE.png)
+### * Genetic Algorithm (GA)
 
 [Genetic Algorithm (GA)](https://github.com/junginkim23/Business_Analytics_tutorial/blob/master/Dimensionality_Reduction/Genetic_Algorithm/README.md): 지도 학습 기반 차원 축소 기법 FS, BS, SS에 비해 소요되는 시간은 오래 걸리지만 성능은 더 좋은 방법이다. 해당 기법은 염색체 초기화, 염색체 선택 변수 별 모델 학습, 염색체 적합도 평가, 우수 염색체 선택(Selection), 다음 세대 염색체 생성(Crossover&Mutation), 최종 변수 집합 선택 총 6단계로 구성되어 있다. 중요한 점은 2단계와 5단계을 반복적으로 수행하여 더 이상 성능 향상이 이루어지지 않을 때 마지막 6단계가 수행된다. **본 기법에서 핵심 단계는 Selection, Crossover, Mutation 단계이다.** 
 <img src="./image/GA2.png" width='100%' height='30%'>
