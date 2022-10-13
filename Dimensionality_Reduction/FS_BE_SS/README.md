@@ -8,7 +8,7 @@
 
 ---
 
-**Dataset** : ToyotaCorolla dataset --> FS, BS, SS에 모두 공통으로 사용
+**Dataset** : ToyotaCorolla dataset --> FS, BS에 모두 공통으로 사용
 
 1. Forward Selection 
 
