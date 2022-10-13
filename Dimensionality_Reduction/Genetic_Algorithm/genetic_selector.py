@@ -160,6 +160,7 @@ class GeneticSelector:
         self.cv = check_cv(self.cv, y, classifier=is_classifier(
             self.estimator))
 
+
         # Time when training begins
         init_time = time.time()
 
@@ -227,15 +228,19 @@ class GeneticSelector:
             new_population = self.__selection(
                 self.population, population_scores[:, 0],
                 best_chromosome_index)
+            
             print(f'# Selection {i+1} done.')
+            print(new_population)
 
             # Crossover
             new_population = self.__crossover(new_population)
             print(f'# Crossover {i+1} done.')
+            print(new_population)
 
             # Mutation
             new_population = self.__mutation(new_population)
             print(f'# Mutation {i+1} done.')
+            print(new_population)
 
             # Replace previous population with new_population
             self.population = new_population.copy()
@@ -322,6 +327,7 @@ class GeneticSelector:
         # Create population_size chromosomes
         self.population = np.random.randint(
             2, size=(self.population_size, n_genes))
+        print(self.population)
 
     def estimate(self, chromosome: np.ndarray) -> float:
         # Select those features with ones in chromosome
@@ -340,6 +346,7 @@ class GeneticSelector:
 
     def __evaluate(self, population: np.ndarray) -> np.ndarray:
         # Pool for parallelization
+        self.n_jobs = 1
         pool = mp.Pool(self.n_jobs)
         return np.array(pool.map(self.estimate, population))
 
