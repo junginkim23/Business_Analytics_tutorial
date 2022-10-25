@@ -4,6 +4,8 @@
 2. FDA (LDA) vs KFD 
 3. PCA vs KPCA
 
+---
+
 ## 1. SVC vs SVR 
 
 `SVC` 
@@ -174,8 +176,176 @@ plt.show()
 `SVR`
 : SVR (Support Vector Regression)은 회귀 문제에 사용할 수 있는 SVM 모델을 뜻한다. SVC에서는 마진을 최대화하는 결정 경계를 최적의 결정 경계로 설정하고 해당 결정 경계를 찾는 것을 목적으로 삼았지만 SVR에서는 마진 내부에 데이터가 최대한 많이 들어가도록 학습을 하는 것이다. 즉 회귀 계수 크기를 작게하여 회귀식을 평평하게 하되, 실제 값과 추정 값의 차이를 작도록 고려하는 회귀식을 찾는 것이 SVR의 목적이 된다. 
 
-[파이썬을 활용하여 SVR을 구현하여 확인해보았다.](https://github.com/junginkim23/Business_Analytics_tutorial/blob/master/Kernel_based_learning/svr.ipynb)
-- 본 tutorial에서는 _를 사용해 선형, 비선형 회귀식을 통해 regression task를 해결해보았다.
+[SVR - Python Tutorial](https://github.com/junginkim23/Business_Analytics_tutorial/blob/master/Kernel_based_learning/svr.ipynb)
+- sklearn.datasets에 있는 load_boston dataset을 사용하였다. 
+```
+data = d.load_boston()
+
+X,y = data.data, data.target
+
+## row의 수: 506 / columns의 수: 14 / 타겟 변수: 본인 소유의 주택 가격 
+## 미국 보스턴 지역의 주택 가격에 영향을 미치는 요소들을 사용해 본인 소유의 주택 가격 예측
+print(data.DESCR)
+---output---
+Boston house prices dataset
+---------------------------
+
+**Data Set Characteristics:**  
+
+    :Number of Instances: 506 
+
+    :Number of Attributes: 13 numeric/categorical predictive. Median Value (attribute 14) is usually the target.
+
+    :Attribute Information (in order):
+        - CRIM     per capita crime rate by town
+        - ZN       proportion of residential land zoned for lots over 25,000 sq.ft.
+        - INDUS    proportion of non-retail business acres per town
+        - CHAS     Charles River dummy variable (= 1 if tract bounds river; 0 otherwise)
+        - NOX      nitric oxides concentration (parts per 10 million)
+        - RM       average number of rooms per dwelling
+        - AGE      proportion of owner-occupied units built prior to 1940
+        - DIS      weighted distances to five Boston employment centres
+        - RAD      index of accessibility to radial highways
+        - TAX      full-value property-tax rate per $10,000
+        - PTRATIO  pupil-teacher ratio by town
+        - B        1000(Bk - 0.63)^2 where Bk is the proportion of black people by town
+        - LSTAT    % lower status of the population
+...
+
+   - Belsley, Kuh & Welsch, 'Regression diagnostics: Identifying Influential Data and Sources of Collinearity', Wiley, 1980. 244-261.
+   - Quinlan,R. (1993). Combining Instance-Based and Model-Based Learning. In Proceedings on the Tenth International Conference of Machine Learning, 236-243, University of Massachusetts, Amherst. Morgan Kaufmann.
+```
+
+- 선형 회귀 진행
+```
+## 선형 회귀 진행 
+
+X_train,X_val,y_train,y_val = sklearn.model_selection.train_test_split(X,y,random_state=0)
+
+svm_reg = svm.SVR(kernel='linear',C=1.0,epsilon=0.1)
+
+svm_reg.fit(X_train,y_train)
+y_pred = svm_reg.predict(X_val)
+
+r2 = r2_score(y_val,y_pred)
+
+print(r2)
+---output---
+0.5635479105806482
+```
+
+- 비선형 회귀 진행 
+```
+## 비선형 회귀 진행 
+
+svm_non_reg = svm.SVR(kernel='poly',C=1.0,epsilon=0.1,degree=3,coef0=0.1)
+
+svm_non_reg.fit(X_train,y_train)
+y_pred_non = svm_non_reg.predict(X_val)
+
+r2_v2 = r2_score(y_val,y_pred_non)
+
+print(r2_v2)
+---output---
+0.10397216111777619
+```
+
+- GridSearch 탐색 기법을 사용해 최적 하이퍼 파라미터 탐색
+```
+## grid search를 사용해 선형 회귀 hyperparameter tuning 진행 
+import warnings 
+from sklearn.model_selection import GridSearchCV
+
+warnings.filterwarnings('ignore')
+
+svm_reg = svm.SVR(kernel='linear')
+svr_parameters = {'C':[0.001,0.01,0.1,1,10,25,50,100],'epsilon':[0.1,0.3,0.5,0.8]}
+
+grid_svr = GridSearchCV(svm_reg,param_grid=svr_parameters,cv=5,scoring='r2')
+
+grid_svr.fit(X_train,y_train)
+
+print('최적 파라미터:',grid_svr.best_params_)
+print('최적 값:',grid_svr.best_score_)
+
+result = pd.DataFrame(grid_svr.cv_results_['params'])
+result['mean_test_score'] = grid_svr.cv_results_['mean_test_score']
+result.sort_values(by='mean_test_score',ascending=False)
+
+---output---
+최적 파라미터: {'C': 0.1, 'epsilon': 0.1}
+최적 값: 0.7213985360521598
+```
+<p align='center'><img src="./image/result.png" width='400' height='600'></p>
+
+- GridSearch 탐색 기법을 활용하여 Kernel trick(polynomial)을 적용한 SVR의 최적의 하이퍼 파라미터 탐색
+```
+## grid search를 사용해 비선형 회귀 hyperparameter tuning 진행 
+import warnings 
+from sklearn.model_selection import GridSearchCV
+
+warnings.filterwarnings('ignore')
+
+svm_non_reg = svm.SVR(kernel='poly')
+svr_non_parameters = {'C':[0.001,0.01,0.1,1,10,25,50,100],'epsilon':[0.1,0.3,0.5,0.8],'degree':[3,4,5],'coef0':[0.0,0.1,0.2,0.3]}
+
+grid_svr_non = GridSearchCV(svm_non_reg,param_grid=svr_non_parameters,cv=5,scoring='r2')
+
+grid_svr_non.fit(X_train,y_train)
+
+print('최적 파라미터:',grid_svr_non.best_params_)
+print('최적 값:',grid_svr_non.best_score_)
+
+result = pd.DataFrame(grid_svr_non.cv_results_['params'])
+result['mean_test_score'] = grid_svr_non.cv_results_['mean_test_score']
+result.sort_values(by='mean_test_score',ascending=False)
+---output---
+최적 파라미터: {'C': 100, 'coef0': 0.3, 'degree': 5, 'epsilon': 0.8}
+최적 값: 0.6028161014290282
+```
+<p align='center'><img src="./image/result2.png" width='300' height='300'></p>
+
+- plot 그리기 
+```
+## SVR - linear
+
+from sklearn.decomposition import PCA
+
+model_best_params = grid_svr.best_params_
+model_best_params['kernel'] = 'linear'
+model_best_params['gamma'] = 'scale'
+
+model = svm.SVR(**model_best_params)
+pca = PCA(n_components=1)
+pca_X = pca.fit_transform(X)
+
+model.fit(pca_X,y)
+y_pred = model.predict(pca_X)
+
+plt.scatter(pca_X,y)
+plt.scatter(pca_X,y_pred,color='r')
+```
+<p align='center'><img src="./image/output2.png" width='300' height='300'></p>
+```
+## SVR - kernel(poly)
+
+from sklearn.decomposition import PCA
+
+model_best_params = grid_svr_non.best_params_
+model_best_params['kernel'] = 'poly'
+
+model_non = svm.SVR(**model_best_params)
+pca = PCA(n_components=1)
+pca_X = pca.fit_transform(X)
+
+model_non.fit(pca_X,y)
+y_pred = model_non.predict(pca_X)
+
+plt.scatter(pca_X,y)
+plt.scatter(pca_X,y_pred,color='r')
+```
+<p align='center'><img src="./image/output3.png" width='300' height='300'></p>
+
 
 ## 2. FDA (LDA) vs KFD 
 
