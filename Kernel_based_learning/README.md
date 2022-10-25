@@ -18,14 +18,14 @@
 
 <img src="./image/margin.png" width='1000' height='400'>
 
-`[파이썬을 활용하여 SVR을 구현하여 확인해보았다.]`(https://github.com/junginkim23/Business_Analytics_tutorial/blob/master/Kernel_based_learning/svm.ipynb)
+[파이썬을 활용하여 SVR을 구현하여 확인해보았다.](https://github.com/junginkim23/Business_Analytics_tutorial/blob/master/Kernel_based_learning/svc.ipynb)
 - 본 tutorial에서는 load_breast_cancer() dataset을 사용해 선형, 비선형 분리를 진행해보았다. 비선형 분리 svm에서는 polynomial kernel을 사용한다.
 
 
 `SVR`
 : SVR (Support Vector Regression)은 회귀 문제에 사용할 수 있는 SVM 모델을 뜻한다. SVC에서는 마진을 최대화하는 결정 경계를 최적의 결정 경계로 설정하고 해당 결정 경계를 찾는 것을 목적으로 삼았지만 SVR에서는 마진 내부에 데이터가 최대한 많이 들어가도록 학습을 하는 것이다. 즉 회귀 계수 크기를 작게하여 회귀식을 평평하게 하되, 실제 값과 추정 값의 차이를 작도록 고려하는 회귀식을 찾는 것이 SVR의 목적이 된다. 
 
-`[파이썬을 활용하여 SVR을 구현하여 확인해보았다.]`()
+[파이썬을 활용하여 SVR을 구현하여 확인해보았다.](https://github.com/junginkim23/Business_Analytics_tutorial/blob/master/Kernel_based_learning/svr.ipynb)
 - 본 tutorial에서는 _를 사용해 선형, 비선형 회귀식을 통해 regression task를 해결해보았다.
 
 ## 2. FDA (LDA) vs KFD 
