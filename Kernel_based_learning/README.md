@@ -303,6 +303,7 @@ result.sort_values(by='mean_test_score',ascending=False)
 최적 값: 0.6028161014290282
 ```
 - plot 그리기 
+
 ```
 ## SVR - linear
 
@@ -322,6 +323,7 @@ y_pred = model.predict(pca_X)
 plt.scatter(pca_X,y)
 plt.scatter(pca_X,y_pred,color='r')
 ```
+
 <p align='center'><img src="./image/output2.png" width='300' height='300'></p>
 ```
 ## SVR - kernel(poly)
