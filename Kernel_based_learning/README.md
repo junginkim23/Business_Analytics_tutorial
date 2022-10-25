@@ -11,12 +11,12 @@
 
 `what is a Support Vector?` 
 : 결론 지어 말하면 결정 경계는 데이터 군으로부터 최대한 멀리 떨어지는 게 좋다는 것을 알 수 있다. 실제 Support Vector Machine에서 Support Vector는 결정 경계와 가까이 있는 데이터 포인트들을 말한다. 이를 사용하여 결정 경계를 정의하게 되는데 이 떄 알아야 할 용어가 바로 마진(Margin)이다.
-<img src="./image/svm.png" width='1000' height='300'>
+<p align='center'><img src="./image/svm.png" width='400' height='300'></p>
 
 `What is Margin?` 
 : 마진은 결정 경계와 서포트 벡터 사이의 거리를 뜻한다. 아래 그림에서 실선이 결정 경계라면 실선과 점선간의 거리가 바로 마진이고 결국 마진을 최대화하는 결정 경계가 바로 최적의 결정 경계라고 볼 수 있다.
 
-<img src="./image/margin.png" width='800' height='300'>
+<p align='center'><img src="./image/margin.png" width='400' height='300'></p>
 
 [SVC - Python Tutorial](https://github.com/junginkim23/Business_Analytics_tutorial/blob/master/Kernel_based_learning/svc.ipynb)
 - sklearn.datasets에 있는 load_breast_cancer dataset을 사용하였다. 
