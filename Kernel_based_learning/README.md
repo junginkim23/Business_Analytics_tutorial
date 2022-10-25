@@ -168,7 +168,7 @@ model.fit(pca_X,y)
 plot_decision_regions(X=pca_X,y=y.values, clf=model, legend=2)
 plt.show()
 ```
-<img src="./image/output.png" width='800' height='300'>
+<p align='center'><img src="./image/output.png" width='400' height='300'></p>
 
 
 `SVR`
