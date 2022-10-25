@@ -11,15 +11,164 @@
 
 `what is a Support Vector?` 
 : 결론 지어 말하면 결정 경계는 데이터 군으로부터 최대한 멀리 떨어지는 게 좋다는 것을 알 수 있다. 실제 Support Vector Machine에서 Support Vector는 결정 경계와 가까이 있는 데이터 포인트들을 말한다. 이를 사용하여 결정 경계를 정의하게 되는데 이 떄 알아야 할 용어가 바로 마진(Margin)이다.
-<img src="./image/svm.png" width='90%' height='10%'>
+<img src="./image/svm.png" width='1000' height='300'>
 
 `What is Margin?` 
 : 마진은 결정 경계와 서포트 벡터 사이의 거리를 뜻한다. 아래 그림에서 실선이 결정 경계라면 실선과 점선간의 거리가 바로 마진이고 결국 마진을 최대화하는 결정 경계가 바로 최적의 결정 경계라고 볼 수 있다.
 
-<img src="./image/margin.png" width='1000' height='400'>
+<img src="./image/margin.png" width='800' height='300'>
 
-[파이썬을 활용하여 SVR을 구현하여 확인해보았다.](https://github.com/junginkim23/Business_Analytics_tutorial/blob/master/Kernel_based_learning/svc.ipynb)
-- 본 tutorial에서는 load_breast_cancer() dataset을 사용해 선형, 비선형 분리를 진행해보았다. 비선형 분리 svm에서는 polynomial kernel을 사용한다.
+[SVC - Python Tutorial](https://github.com/junginkim23/Business_Analytics_tutorial/blob/master/Kernel_based_learning/svc.ipynb)
+- sklearn.datasets에 있는 load_breast_cancer dataset을 사용하였다. 
+```
+import sklearn.datasets as d 
+
+x = d.load_breast_cancer()
+
+print(x.DESCR)
+Breast cancer wisconsin (diagnostic) dataset
+--------------------------------------------
+
+**Data Set Characteristics:**
+
+    :Number of Instances: 569
+
+    :Number of Attributes: 30 numeric, predictive attributes and the class
+
+    :Attribute Information:
+        - radius (mean of distances from center to points on the perimeter)
+        - texture (standard deviation of gray-scale values)
+        - perimeter
+        - area
+        - smoothness (local variation in radius lengths)
+        - compactness (perimeter^2 / area - 1.0)
+        - concavity (severity of concave portions of the contour)
+        - concave points (number of concave portions of the contour)
+        - symmetry
+        - fractal dimension ("coastline approximation" - 1)
+
+        The mean, standard error, and "worst" or largest (mean of the three
+        worst/largest values) of these features were computed for each image,
+...
+     July-August 1995.
+   - W.H. Wolberg, W.N. Street, and O.L. Mangasarian. Machine learning techniques
+     to diagnose breast cancer from fine-needle aspirates. Cancer Letters 77 (1994) 
+     163-171.
+```
+- 선형, 비선형 분리 진행 
+```
+## linear로 선형 분리 진행 
+svm_clf = svm.SVC(kernel='linear')
+
+## 교차 검증 진행 
+print(pd.DataFrame(cross_validate(svm_clf,X,y,cv=6)))
+
+print('교차 검증 결과 평균:', cross_val_score(svm_clf,X,y,cv=6).mean())
+
+fit_time  score_time  test_score
+0  0.509360    0.001000    0.968421
+1  1.618746    0.001000    0.905263
+2  0.568252    0.002030    0.957895
+3  1.022619    0.001005    0.957895
+4  0.308602    0.001004    0.936842
+5  0.682040    0.001537    0.968085
+교차 검증 결과 평균: 0.9490668159761105
+
+## Kernel trick (polynomial kernel) 사용해 비선형 분리 진행 
+svm_clf_poly=svm.SVC(kernel='poly')
+
+## 교차 검증 진행
+print(pd.DataFrame(cross_validate(svm_clf_poly,X,y,cv=6)))
+
+print('교차 검증 결과 평균:', cross_val_score(svm_clf_poly,X,y,cv=6).mean())
+
+fit_time  score_time  test_score
+0  0.003999    0.000972    0.863158
+1  0.003028    0.002000    0.842105
+2  0.002970    0.001918    0.926316
+3  0.002999    0.000999    0.936842
+4  0.002999    0.000973    0.957895
+5  0.003000    0.001000    0.925532
+교차 검증 결과 평균: 0.9086412840612169
+```
+- optuna를 사용해 선형 분리에서 적절한 하이퍼 파라미터 C값 탐색 진행 
+```
+## 선형 분리에서 적절한 C값 탐색 진행
+warnings.filterwarnings('ignore')
+
+def objective(trial):
+    x = d.load_breast_cancer()
+    X,y = x.data, x.target 
+
+    svc_c = trial.suggest_float('C',1e-4,1e2,log=True)
+    classifier_obj = svm.SVC(C=svc_c, gamma='auto',kernel='linear')
+    
+    X_train,X_val,y_train,y_val = sklearn.model_selection.train_test_split(X,y,random_state=0)
+    classifier_obj.fit(X_train,y_train)
+    y_pred = classifier_obj.predict(X_val)
+
+    accuracy = sklearn.metrics.accuracy_score(y_val,y_pred,normalize=True)
+    return accuracy
+
+study = optuna.create_study(direction='maximize')
+study.optimize(objective,n_trials=100)
+
+print('100번의 trial 중 최적의 하이퍼 파라미터:',study.best_trial.params)
+print('100번의 trial 중 가장 높은 accuracy:',study.best_trial.value)
+---output---
+100번의 trial 중 최적의 하이퍼 파라미터: {'C': 36.60317395134434}
+100번의 trial 중 가장 높은 accuracy: 0.972027972027972
+```
+
+- Kernel trick(polynomial)을 사용한 svc에서 optuna를 사용해 최적의 하이퍼 파라미터 탐색  
+```
+## 비선형 분리에서 적절한 C값 탐색 진행
+warnings.filterwarnings('ignore')
+
+def objective_poly(trial):
+    x = d.load_breast_cancer()
+    X,y = x.data, x.target 
+
+    svc_c = trial.suggest_float('C',1e-4,1e-2,log=True)
+    svc_degree = trial.suggest_int('degree',3,5,step=1)
+    # svc_gamma = trial.suggest_categorical('svc_gamma',['scale','auto'])
+    svc_coef = trial.suggest_float('coef0',0.0,0.3,step=0.1)
+
+    classifier_obj_non = svm.SVC(C=svc_c, gamma='auto',kernel='poly')
+    
+    X_train,X_val,y_train,y_val = sklearn.model_selection.train_test_split(X,y,random_state=0)
+    classifier_obj_non.fit(X_train,y_train)
+    y_pred = classifier_obj_non.predict(X_val)
+
+    accuracy = sklearn.metrics.accuracy_score(y_val,y_pred,normalize=True)
+    return accuracy
+
+study_non = optuna.create_study(direction='maximize')
+study_non.optimize(objective_poly,n_trials=100)
+
+print('100번의 trial 중 최적의 하이퍼 파라미터:',study.best_trial.params)
+print('100번의 trial 중 가장 높은 accuracy:',study.best_trial.value)
+```
+
+- plot 그리기 
+```
+from sklearn.decomposition import PCA
+
+model_best_params = study.best_params
+model_best_params['C'] = model_best_params.pop('svc_c')
+model_best_params['kernel'] = 'linear'
+model_best_params['gamma'] = 'auto'
+
+model = svm.SVC(**model_best_params)
+pca = PCA(n_components=2)
+pca_X = pca.fit_transform(X)
+
+model.fit(pca_X,y)
+
+plot_decision_regions(X=pca_X,y=y.values, clf=model, legend=2)
+plt.show()
+```
+<img src="./image/output.png" width='800' height='300'>
 
 
 `SVR`
