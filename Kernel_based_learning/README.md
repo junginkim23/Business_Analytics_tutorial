@@ -253,10 +253,10 @@ def showplt(self,best_params):
         plt.show()
 ``` 
 `linear SVR`
-<p align='center'><img src="./image/output2.png" width='60%' height='30%'></p>
+<p align='center'><img src="./image/output2.png" width='400' height='300'></p>
 
 `SVR Using Kernel trick (polynomial)`
-<p align='center'><img src="./image/output3.png" width='60%' height='30%'></p>
+<p align='center'><img src="./image/output3.png" width='400' height='300'></p>
 
 ### Conclusion
 In svc, the breast cancer data set provided by sklearn was used. When both linear SVC and SVC using the polynomial kernel trick were applied, it was confirmed that linear SVC was more suitable for the data set. In this case, accuracy was used as a performance evaluation index. Linear SVC was more suitable when the performance was confirmed by performing parameter tuning.
