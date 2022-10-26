@@ -12,7 +12,8 @@ def main():
         model = SVC(args,dataset)
         model.cross_validation()
         best_params = model.parameter_tuning()
-        model.showplt2(best_params)
+        p_model,X,y = model.prepare_plt(best_params)
+        model.showplt(X,y,p_model)
     else: 
         dataset = d.load_boston()
         model = SVR(args,dataset)

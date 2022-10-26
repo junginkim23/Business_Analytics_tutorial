@@ -56,7 +56,7 @@ def cross_validation(self):
 
 ------Output------
 # linear SVC 
-fit_time  score_time  test_score
+   fit_time  score_time  test_score
 0  0.501264    0.002000    0.968421
 1  1.562880    0.001031    0.905263
 2  0.562559    0.001999    0.957895
@@ -65,15 +65,15 @@ fit_time  score_time  test_score
 5  0.648736    0.001997    0.968085
 Cross-validation result average: 0.9490668159761105
 
-# SVC Using Kernel trick (polynomial)
- fit_time  score_time  test_score
-0  0.003661    0.001000    0.863158
-1  0.003000    0.001001    0.842105
-2  0.003000    0.002001    0.926316
-3  0.002999    0.002000    0.936842
-4  0.004001    0.001000    0.957895
-5  0.003999    0.001000    0.925532
-Cross-validation result average: 0.9086412840612169
+# SVC Using Kernel trick (rbf)
+   fit_time  score_time  test_score
+0  0.002998    0.001002    0.884211
+1  0.002002    0.002002    0.852632
+2  0.003000    0.001001    0.926316
+3  0.002998    0.001000    0.936842
+4  0.003002    0.000998    0.957895
+5  0.002970    0.001023    0.925532
+Cross-validation result average: 0.9139044419559537
 ```
 2. Parameter tuning using optuna 
 ```
@@ -115,10 +115,10 @@ def parameter_tuning(self):
 Optimal hyperparameter among 100 trials: {'C': 36.60317395134434}
 Highest accuracy among 100 trials: 0.972027972027972
 
-# SVC Using Kernel trick (polynomial)
------------poly-----------
-Optimal hyperparameter among 100 trials: 
-Highest accuracy among 100 trials: 
+# SVC Using Kernel trick (rbf)
+-----------rbf-----------
+Optimal hyperparameter among 100 trials: {'C': 0.00013004988136673104, 'degree': 3, 'gamma': 'auto', 'coef0': 0.0}
+Highest accuracy among 100 trials: 0.6293706293706294
 ```
 
 3. show plot 
@@ -142,10 +142,10 @@ def showplt2(self,best_params):
         plt.show()
 ```
 `linear SVC`
-<p align='center'><img src="./image/output.png" width='400' height='300'></p>
+<p align='center'><img src="./image/linear_svc.png" width='400' height='300'></p>
 
-`SVC Using Kernel trick (polynomial)`
-<!-- <p align='center'><img src="./image/output.png" width='400' height='300'></p> -->
+`SVC Using Kernel trick (rbf)`
+<p align='center'><img src="./image/RBF_SVC.png" width='400' height='300'></p>
 
 
 `SVR`

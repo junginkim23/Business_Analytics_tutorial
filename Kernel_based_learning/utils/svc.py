@@ -32,9 +32,9 @@ class SVC:
             else : 
                 svc_c = trial.suggest_float('C',1e-4,1e-2,log=True)
                 svc_degree = trial.suggest_int('degree',3,5,step=1)
-                # svc_gamma = trial.suggest_categorical('svc_gamma',['scale','auto'])
+                svc_gamma = trial.suggest_categorical('gamma',['scale','auto'])
                 svc_coef = trial.suggest_float('coef0',0.0,0.3,step=0.1)
-                classifier_obj = svm.SVC(C=svc_c, gamma='auto',degree=svc_degree,coef0=svc_coef,kernel=self.args.kernel)
+                classifier_obj = svm.SVC(C=svc_c,degree=svc_degree,gamma=svc_gamma,coef0=svc_coef,kernel=self.args.kernel)
 
             X,y = self.dataset.data,self.dataset.target 
             X_train,X_val,y_train,y_val = sklearn.model_selection.train_test_split(X,y,random_state=0)
@@ -56,8 +56,9 @@ class SVC:
         return study.best_params
     
     ## plot function 
-    def showplt(x,y,svm1,title):
-
+    def showplt(self,x,y,svm1):
+        
+        title = f'{self.args.kernel}_SVC'
         plt.scatter(x[:,0],x[:,1], c=y, s=30, cmap=plt.cm.Paired)
 
         ax = plt.gca()
@@ -89,11 +90,32 @@ class SVC:
             model_best_params['gamma'] = 'auto'
             model = svm.SVC(**model_best_params)
         else :
-            pass
+            model_best_params = best_params
+            model_best_params['kernel'] = 'rbf'
+            model = svm.SVC(**model_best_params)
 
         model.fit(pca_X,y)
 
         plot_decision_regions(X=pca_X,y=y, clf=model, legend=2)
         plt.show()
+    
+    def prepare_plt(self,best_params):
+        X,y = self.dataset.data, self.dataset.target
+        pca = PCA(n_components=2)
+        pca_X = pca.fit_transform(X)
+
+        if self.args.kernel == 'linear':
+            model_best_params = best_params
+            model_best_params['kernel'] = 'linear'
+            model_best_params['gamma'] = 'auto'
+            model = svm.SVC(**model_best_params)
+        else :
+            model_best_params = best_params
+            model_best_params['kernel'] = 'rbf'
+            model = svm.SVC(**model_best_params)
+
+        model.fit(pca_X,y)
+
+        return model, pca_X, y 
 
     
