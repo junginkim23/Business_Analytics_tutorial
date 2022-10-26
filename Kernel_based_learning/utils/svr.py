@@ -52,8 +52,8 @@ class SVR:
             grid_svr = GridSearchCV(svm_reg,param_grid=svr_non_parameters,cv=5,scoring='r2')
             grid_svr.fit(X_train,y_train)
 
-        print('최적 파라미터:',grid_svr.best_params_)
-        print('최적 값:',grid_svr.best_score_)
+        print('optimal parameter:',grid_svr.best_params_)
+        print('optimal value:',grid_svr.best_score_)
 
         result = pd.DataFrame(grid_svr.cv_results_['params'])
         result['mean_test_score'] = grid_svr.cv_results_['mean_test_score']
