@@ -221,7 +221,7 @@ Optimal parameter: {'C': 100, 'coef0': 0.3, 'degree': 5, 'epsilon': 0.8}
 Optimal value: 0.6028161014290282
 ```
 `linear SVR`
-<p align='center'><img src="./image/result.PNG" width='40%' height=''></p>
+<p align='center'><img src="./image/result.PNG" width='30%' height=''></p>
 
 `SVR Using Kernel trick (polynomial)`
 <p align='center'><img src="./image/result2.jpg" width='50%' height=''></p>
