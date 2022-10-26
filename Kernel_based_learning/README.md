@@ -214,8 +214,8 @@ def gridSearch(self):
 -----------linear-----------
 Optimal parameter: {'C': 0.1, 'epsilon': 0.1}
 Optimal value: 0.7213985360521598
-# SVR Using Kernel trick (polynomial)
 
+# SVR Using Kernel trick (polynomial)
 -----------poly-----------
 Optimal parameter: {'C': 100, 'coef0': 0.3, 'degree': 5, 'epsilon': 0.8}
 Optimal value: 0.6028161014290282
