@@ -1,4 +1,4 @@
-## Kernel based Learning 
+# Kernel based Learning 
 
 1. SVC vs SVR 
 2. FDA (LDA) vs KFD 
