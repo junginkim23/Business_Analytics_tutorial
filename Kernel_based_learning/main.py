@@ -11,7 +11,7 @@ def main():
         dataset = d.load_breast_cancer()
         model = SVC(args,dataset)
         model.cross_validation()
-        best_params = model.fine_tuning()
+        best_params = model.parameter_tuning()
         model.showplt2(best_params)
     else: 
         dataset = d.load_boston()

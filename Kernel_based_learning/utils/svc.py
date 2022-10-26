@@ -23,7 +23,7 @@ class SVC:
         print(pd.DataFrame(cross_validate(svm_clf,X,y,cv=6)))
         print('Cross-validation result average:', cross_val_score(svm_clf,X,y,cv=6).mean())
     
-    def fine_tuning(self):
+    def parameter_tuning(self):
         def objective(trial):
 
             if self.args.kernel == 'linear':
