@@ -1,7 +1,7 @@
 import os
-from args import get_args
-from svc import SVC
-from svr import SVR
+from utils.args import get_args
+from utils.svc import SVC
+from utils.svr import SVR
 import sklearn.datasets as d
 
 def main():

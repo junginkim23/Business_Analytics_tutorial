@@ -8,7 +8,6 @@ from sklearn.decomposition import PCA
 import optuna
 import warnings
 import sklearn 
-from args import get_args
 from mlxtend.plotting import plot_decision_regions 
 
 warnings.filterwarnings('ignore')
