@@ -149,6 +149,17 @@ def showplt2(self,best_params):
 `SVC Using Kernel trick (rbf)`
 <p align='center'><img src="./image/RBF_SVC.png" width='400' height='300'></p>
 
+### More details_SVC Parameter C
+If the value of C is small, the SVM classifier will choose the decision boundary with a large margin. On the other hand, as the value of C increases, a decision boundary with a small margin will be selected. In this case, fewer misclassifications may occur, but there may also be a problem of overfitting only the train data. Therefore, it is important to select an appropriate C value, and the thing to consider is noise in the data. If the noise is very high, a small C is suitable, and vice versa, a large C value is preferable.
+
+`linear SVC`
+<p align='center'><img src="./image/Figure_1.png" ></p>
+
+`SVC Using Kernel trick (rbf)`
+
+In this case, as the value of C increases, the shape of the decision boundary becomes much more wavy in order not to allow out-of-margin.
+<p align='center'><img src="./image/Figure_2.png" ></p>
+
 
 `SVR`
 : SVR (Support Vector Regression) refers to an SVM model that can be used for regression problems. In SVC, the goal was to set the decision boundary that maximizes the margin as the optimal decision boundary and to find the decision boundary. That is, the purpose of SVR is to find a regression equation that flattens the regression equation by reducing the size of the regression coefficient, but considers the difference between the actual value and the estimated value to be small.
@@ -285,17 +296,6 @@ MAE: 5.471054051630741, MSE: 68.56452164757222, RMSE: 8.280369656456903, R2: 0.1
 
 MAE: 5.399652326467341, MSE: 65.93968376928049, RMSE: 8.120325348733294, R2: 0.2189051118996601
 <p align='center'><img src="./image/output3.png" width='400' height='300'></p>
-
-### More details_SVC Parameter C
-If the value of C is small, the SVM classifier will choose the decision boundary with a large margin. On the other hand, as the value of C increases, a decision boundary with a small margin will be selected. In this case, fewer misclassifications may occur, but there may also be a problem of overfitting only the train data. Therefore, it is important to select an appropriate C value, and the thing to consider is noise in the data. If the noise is very high, a small C is suitable, and vice versa, a large C value is preferable.
-
-`linear SVC`
-<p align='center'><img src="./image/Figure_1.png" ></p>
-
-`SVC Using Kernel trick (rbf)`
-
-In this case, as the value of C increases, the shape of the decision boundary becomes much more wavy in order not to allow out-of-margin.
-<p align='center'><img src="./image/Figure_2.png" ></p>
 
 ### Conclusion
 In svc, the breast cancer data set provided by sklearn was used. When both linear SVC and SVC using the polynomial kernel trick were applied, it was confirmed that linear SVC was more suitable for the data set. In this case, accuracy was used as a performance evaluation index. Linear SVC was more suitable when the performance was confirmed by performing parameter tuning.
