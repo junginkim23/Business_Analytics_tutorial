@@ -318,6 +318,8 @@ In SVC, the breast cancer data set provided by sklearn was used. When both linea
 
 In SVR, the boston data set provided by sklearn was used. When linear svr and svr using polynomial kernel trick were applied, it was confirmed through r2 score that linear svr expressed the data set better. Unlike in svc, gridsearch was performed when parameter tuning was performed, and it was confirmed that the performance of svr to which the polynomial kernel trick was applied was greatly improved. However, as the linear svr still showed better performance, it was judged that the linear svr is more suitable for the data set as well.
 
+---
+
 ## 2. FDA (LDA) vs KFD 
 
 `FDA` 
