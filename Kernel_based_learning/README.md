@@ -152,6 +152,21 @@ def showplt2(self,best_params):
 ### More details_SVC Parameter C
 If the value of C is small, the SVM classifier will choose the decision boundary with a large margin. On the other hand, as the value of C increases, a decision boundary with a small margin will be selected. In this case, fewer misclassifications may occur, but there may also be a problem of overfitting only the train data. Therefore, it is important to select an appropriate C value, and the thing to consider is noise in the data. If the noise is very high, a small C is suitable, and vice versa, a large C value is preferable.
 
+```
+def showplt3(self,X,y):
+        self.x, self.y = X, y
+        pca = PCA(n_components=2)
+        pca_X = pca.fit_transform(self.x)
+    
+        for c,size in zip(tqdm([0.01,0.1,10,100]),[221,222,223,224]):
+            plt.subplot(size)
+            plt.title(f'{self.args.kernel}_{c}')
+            model = svm.SVC(kernel=self.args.kernel,C=c)
+            model.fit(pca_X,y)
+            self.plot_decision_function_helper(pca_X,y,model)
+        plt.show()
+```
+
 `linear SVC`
 <p align='center'><img src="./image/Figure_1.png" ></p>
 
