@@ -314,7 +314,7 @@ MAE: 5.399652326467341, MSE: 65.93968376928049, RMSE: 8.120325348733294, R2: 0.2
 <p align='center'><img src="./image/output3.png" width='400' height='300'></p>
 
 ### Conclusion
-In svc, the breast cancer data set provided by sklearn was used. When both linear SVC and SVC using the polynomial kernel trick were applied, it was confirmed that linear SVC was more suitable for the data set. In this case, accuracy was used as a performance evaluation index. Linear SVC was more suitable when the performance was confirmed by performing parameter tuning.
+In SVC, the breast cancer data set provided by sklearn was used. When both linear SVC and SVC using the polynomial kernel trick were applied, it was confirmed that linear SVC was more suitable for the data set. In this case, accuracy was used as a performance evaluation index. Linear SVC was more suitable when the performance was confirmed by performing parameter tuning.
 
 In SVR, the boston data set provided by sklearn was used. When linear svr and svr using polynomial kernel trick were applied, it was confirmed through r2 score that linear svr expressed the data set better. Unlike in svc, gridsearch was performed when parameter tuning was performed, and it was confirmed that the performance of svr to which the polynomial kernel trick was applied was greatly improved. However, as the linear svr still showed better performance, it was judged that the linear svr is more suitable for the data set as well.
 
