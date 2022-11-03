@@ -175,6 +175,7 @@ def showplt3(self,X,y):
 In this case, as the value of C increases, the shape of the decision boundary becomes much more wavy in order not to allow out-of-margin.
 <p align='center'><img src="./image/Figure_2.png" ></p>
 
+---
 
 `SVR`
 : SVR (Support Vector Regression) refers to an SVM model that can be used for regression problems. In SVC, the goal was to set the decision boundary that maximizes the margin as the optimal decision boundary and to find the decision boundary. That is, the purpose of SVR is to find a regression equation that flattens the regression equation by reducing the size of the regression coefficient, but considers the difference between the actual value and the estimated value to be small.
