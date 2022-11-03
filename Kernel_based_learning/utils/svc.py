@@ -3,12 +3,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import sklearn.svm as svm 
 import sklearn.metrics as mt 
-from sklearn.model_selection import cross_val_score, cross_validate
+from sklearn.model_selection import cross_val_score, cross_validate, train_test_split
 from sklearn.decomposition import PCA
 import optuna
 import warnings
 import sklearn 
 from mlxtend.plotting import plot_decision_regions 
+from tqdm import tqdm 
 
 warnings.filterwarnings('ignore')
 
@@ -16,6 +17,7 @@ class SVC:
     def __init__(self,args,dataset):
         self.args = args 
         self.dataset = dataset
+        self.data_colors = [(1, 0, 0), (0, 0, 1)]
 
     def cross_validation(self):
         X,y = self.dataset.data, self.dataset.target
@@ -118,4 +120,40 @@ class SVC:
 
         return model, pca_X, y 
 
+    def showplt3(self,X,y):
+        self.x, self.y = X, y
+        pca = PCA(n_components=2)
+        pca_X = pca.fit_transform(self.x)
     
+        for c,size in zip(tqdm([0.01,0.1,10,100]),[221,222,223,224]):
+            plt.subplot(size)
+            plt.title(f'{self.args.kernel}_{c}')
+            model = svm.SVC(kernel=self.args.kernel,C=c)
+            model.fit(pca_X,y)
+            self.plot_decision_function_helper(pca_X,y,model)
+        plt.show()
+        
+    def get_colors(self,y):
+        return [self.data_colors[item] for item in y]
+
+    def plot_decision_function_helper(self, X, y, clf):
+  
+        colors = self.get_colors(y)
+        plt.axis('equal')
+        plt.tight_layout()
+        #plt.axis('off')
+
+        plt.scatter(X[:, 0], X[:, 1], c = colors, s = 10, edgecolors=colors)
+        ax = plt.gca()
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+
+        # Create grid to evaluate model
+        xx = np.linspace(xlim[0], xlim[1], 30)
+        yy = np.linspace(ylim[0], ylim[1], 30)
+        YY, XX = np.meshgrid(yy, xx)
+        xy = np.vstack([XX.ravel(), YY.ravel()]).T
+        Z = clf.decision_function(xy).reshape(XX.shape)
+
+        ax.contour(XX, YY, Z, colors='k', levels=[-1, 0, 1], alpha=0.5,
+             linestyles=['--', '-', '--'])

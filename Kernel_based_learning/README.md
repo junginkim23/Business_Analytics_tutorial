@@ -29,8 +29,10 @@ def main():
         dataset = d.load_breast_cancer()
         model = SVC(args,dataset)
         model.cross_validation()
-        best_params = model.fine_tuning()
-        model.showplt2(best_params)
+        best_params = model.parameter_tuning()
+        p_model,X,y = model.prepare_plt(best_params)
+        model.showplt(X,y,p_model)
+        model.showplt3(dataset.data, dataset.target)
     else: 
         dataset = d.load_boston()
         model = SVR(args,dataset)
@@ -167,22 +169,21 @@ def regression(self):
             svm_reg.fit(X_train,y_train)
 
         y_pred = svm_reg.predict(X_val)
-        r2 = r2_score(y_val,y_pred)
-
-        print(f'{self.args.kernel} r2_score :{r2}')
+        self.metric(y_val,y_pred)
 
 ------Output------
 # linear SVR 
 -----------linear-----------
-linear r2_score: 0.5635479105806482
+MAE: 3.6452421111650932, MSE: 35.657705991432444, RMSE: 5.971407371083675, R2: 0.5635479105806482
 
 # SVR Using Kernel trick (polynomial)
 -----------poly-----------
-poly r2_score: 0.10397216111777619
+MAE: 5.141504732250116, MSE: 73.20459224174424, RMSE: 8.555968223511833, R2: 0.10397216111777619
 ```
 
 2. Parameter tuning using gridSearch
 - In case of linear SVR, only cost and epsilon parameters were considered. On the other hand, SVR using the kernel trick considers coef, degree, C, and epsilon parameters.
+- When the performance evaluation of the model was performed using the optimal hyperparameter found by gridsearch, it was confirmed that the performance was improved compared to the existing default value.
 
 ```
 def gridSearch(self):
@@ -203,6 +204,23 @@ def gridSearch(self):
         print('optimal parameter:',grid_svr.best_params_)
         print('optimal value:',grid_svr.best_score_)
 
+        # SVM Performance evaluation with best_params_
+        if self.args.kernel=='linear':
+            model_best_params = grid_svr.best_params_
+            model_best_params['kernel'] = self.args.kernel
+            model_best_params['gamma'] = 'scale'
+            model = svm.SVR(**model_best_params)
+            model.fit(X_train,y_train)
+            y_pred = model.predict(X_val)
+            self.metric(y_val, y_pred)
+        else:
+            model_best_params = grid_svr.best_params_
+            model_best_params['kernel'] = self.args.kernel
+            model = svm.SVR(**model_best_params)
+            model.fit(X_train,y_train)
+            y_pred = model.predict(X_val)
+            self.metric(y_val, y_pred)
+
         result = pd.DataFrame(grid_svr.cv_results_['params'])
         result['mean_test_score'] = grid_svr.cv_results_['mean_test_score']
         result.sort_values(by='mean_test_score',ascending=False)
@@ -214,11 +232,13 @@ def gridSearch(self):
 -----------linear-----------
 Optimal parameter: {'C': 0.1, 'epsilon': 0.1}
 Optimal value: 0.7213985360521598
+MAE: 3.7009175476911547, MSE: 35.366684997706315, RMSE: 5.946989574373434, R2: 0.5671100219741065
 
 # SVR Using Kernel trick (polynomial)
 -----------poly-----------
 Optimal parameter: {'C': 100, 'coef0': 0.3, 'degree': 5, 'epsilon': 0.8}
 Optimal value: 0.6028161014290282
+MAE: 4.1401730930732095, MSE: 46.52708721734334, RMSE: 6.821076690475144, R2: 0.43050614541818577
 ```
 `linear SVR`
 <p align='center'><img src="./image/result.PNG" width='30%' height=''></p>
@@ -227,6 +247,8 @@ Optimal value: 0.6028161014290282
 <p align='center'><img src="./image/result2.jpg" width='50%' height=''></p>
 
 3. show plot 
+- There is no big difference in the performance comparison between linear svr and polynomial kernel applied svr by extracting one variable using PCA, but svr using kernel trick shows subtly better performance. However, there is a big performance degradation compared to the performance of the model using several variables. Through this, it is considered that modeling using only one variable extracted through PCA is not suitable.
+
 ```
 def showplt(self,best_params):
         X,y = self.dataset.data, self.dataset.target
@@ -246,17 +268,34 @@ def showplt(self,best_params):
 
         model.fit(pca_X,y)
         y_pred = model.predict(pca_X)
+        self.metric(y, y_pred)
 
         plt.title(self.args.kernel)
         plt.scatter(pca_X,y)
         plt.scatter(pca_X,y_pred,color='r')
         plt.show()
+
 ``` 
 `linear SVR`
+
+MAE: 5.471054051630741, MSE: 68.56452164757222, RMSE: 8.280369656456903, R2: 0.18781234148238735
 <p align='center'><img src="./image/output2.png" width='400' height='300'></p>
 
 `SVR Using Kernel trick (polynomial)`
+
+MAE: 5.399652326467341, MSE: 65.93968376928049, RMSE: 8.120325348733294, R2: 0.2189051118996601
 <p align='center'><img src="./image/output3.png" width='400' height='300'></p>
+
+### More details_SVC Parameter C
+If the value of C is small, the SVM classifier will choose the decision boundary with a large margin. On the other hand, as the value of C increases, a decision boundary with a small margin will be selected. In this case, fewer misclassifications may occur, but there may also be a problem of overfitting only the train data. Therefore, it is important to select an appropriate C value, and the thing to consider is noise in the data. If the noise is very high, a small C is suitable, and vice versa, a large C value is preferable.
+
+`linear SVC`
+<p align='center'><img src="./image/Figure_1.png" ></p>
+
+`SVC Using Kernel trick (rbf)`
+
+In this case, as the value of C increases, the shape of the decision boundary becomes much more wavy in order not to allow out-of-margin.
+<p align='center'><img src="./image/Figure_2.png" ></p>
 
 ### Conclusion
 In svc, the breast cancer data set provided by sklearn was used. When both linear SVC and SVC using the polynomial kernel trick were applied, it was confirmed that linear SVC was more suitable for the data set. In this case, accuracy was used as a performance evaluation index. Linear SVC was more suitable when the performance was confirmed by performing parameter tuning.

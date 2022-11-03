@@ -4,7 +4,7 @@ import sklearn.datasets as d
 import pandas as pd
 import sklearn
 import sklearn.svm as svm
-from sklearn.metrics import mean_squared_error, explained_variance_score, r2_score
+from sklearn.metrics import mean_squared_error, explained_variance_score, r2_score, mean_absolute_error
 from sklearn.utils import shuffle
 from sklearn.model_selection import cross_val_score, cross_validate, train_test_split
 import matplotlib.pyplot as plt 
@@ -13,6 +13,7 @@ from mlxtend.plotting import plot_decision_regions
 import warnings
 from sklearn.model_selection import GridSearchCV
 from sklearn.decomposition import PCA
+
 
 warnings.filterwarnings('ignore')
 
@@ -33,9 +34,8 @@ class SVR:
             svm_reg.fit(X_train,y_train)
 
         y_pred = svm_reg.predict(X_val)
-        r2 = r2_score(y_val,y_pred)
-
-        print(f'{self.args.kernel} r2_score :{r2}') 
+        self.metric(y_val,y_pred)
+ 
     
     def gridSearch(self):
         X,y = self.dataset.data, self.dataset.target
@@ -54,6 +54,22 @@ class SVR:
 
         print('optimal parameter:',grid_svr.best_params_)
         print('optimal value:',grid_svr.best_score_)
+
+        if self.args.kernel=='linear':
+            model_best_params = grid_svr.best_params_
+            model_best_params['kernel'] = self.args.kernel
+            model_best_params['gamma'] = 'scale'
+            model = svm.SVR(**model_best_params)
+            model.fit(X_train,y_train)
+            y_pred = model.predict(X_val)
+            self.metric(y_val, y_pred)
+        else:
+            model_best_params = grid_svr.best_params_
+            model_best_params['kernel'] = self.args.kernel
+            model = svm.SVR(**model_best_params)
+            model.fit(X_train,y_train)
+            y_pred = model.predict(X_val)
+            self.metric(y_val, y_pred)
 
         result = pd.DataFrame(grid_svr.cv_results_['params'])
         result['mean_test_score'] = grid_svr.cv_results_['mean_test_score']
@@ -79,8 +95,17 @@ class SVR:
 
         model.fit(pca_X,y)
         y_pred = model.predict(pca_X)
+        self.metric(y, y_pred)
 
         plt.title(self.args.kernel)
         plt.scatter(pca_X,y)
         plt.scatter(pca_X,y_pred,color='r')
         plt.show()
+
+    def metric(self,y_true,y_pred):
+        mae = mean_absolute_error(y_true, y_pred)
+        mse = mean_squared_error(y_true, y_pred)
+        rmse = np.sqrt(mean_squared_error(y_true, y_pred))
+        r2 = r2_score(y_true, y_pred)
+
+        print(f'MAE: {mae}, MSE: {mse}, RMSE: {rmse}, R2: {r2}')

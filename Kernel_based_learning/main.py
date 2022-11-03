@@ -14,6 +14,7 @@ def main():
         best_params = model.parameter_tuning()
         p_model,X,y = model.prepare_plt(best_params)
         model.showplt(X,y,p_model)
+        model.showplt3(dataset.data, dataset.target)
     else: 
         dataset = d.load_boston()
         model = SVR(args,dataset)
