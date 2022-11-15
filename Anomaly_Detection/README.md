@@ -50,26 +50,6 @@ if __name__ == '__main__':
     main()
 ```
 
-- [Make noisy data (fake image)](https://github.com/junginkim23/Business_Analytics_tutorial/blob/master/Anomaly_Detection/utils/add_noisy.py)
-
-    - Create a fake image to proceed with training and inference
-
-```
-def make_noisy_data(mode):
-    img_size = 28
-    n_fake_img = 200
-    fake_img = []
-
-    for i in tqdm(range(n_fake_img)):
-        fake_img.append(np.random.randn(img_size * img_size).reshape(1, img_size, img_size))
-
-    fake_img = torch.FloatTensor(fake_img)
-    fake_img = fake_img.view(n_fake_img, img_size * img_size)
-    fake_img = Variable(fake_img).cuda()
-
-    return fake_img
-```
-
 - [AutoEncoder](https://github.com/junginkim23/Business_Analytics_tutorial/blob/master/Anomaly_Detection/utils/AE.py)  
     - Six linear layers are stacked on each of the encoder and decoder, and the relu function is used in the encoder and the tanh activation function is used in the decoder.
 
