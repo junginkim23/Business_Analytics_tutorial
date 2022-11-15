@@ -9,7 +9,7 @@ def get_args():
     parser.add_argument('--batch_size', default='128', type=int)
     parser.add_argument('--lr', default=1e-2, type=float)
     parser.add_argument('--w_d', default=1e-5, type=float)
-    parser.add_argument('--epochs', default=150, type=int)
+    parser.add_argument('--epochs', default=160, type=int)
     parser.add_argument('--ckpt_dir', default='./Anomaly_Detection/save_model', type=str, help='checkpoint directory')
     parser.add_argument('--save_img_dir', default='./Anomaly_Detection/save_img', type=str)
 

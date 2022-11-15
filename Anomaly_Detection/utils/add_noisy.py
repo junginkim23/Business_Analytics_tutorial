@@ -7,7 +7,7 @@ import numpy as np
 def make_noisy_data(mode):
     if mode == 'train':
         img_size = 28
-        n_fake_img = 1000
+        n_fake_img = 200
         fake_img = []
 
         for i in tqdm(range(n_fake_img)):
