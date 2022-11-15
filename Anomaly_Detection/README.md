@@ -50,7 +50,7 @@ if __name__ == '__main__':
     main()
 ```
 
-- Make noisy data (fake image)
+- [Make noisy data (fake image)](https://github.com/junginkim23/Business_Analytics_tutorial/blob/master/Anomaly_Detection/utils/add_noisy.py)
 
     - Create a fake image to proceed with training and inference
 
@@ -70,7 +70,7 @@ def make_noisy_data(mode):
     return fake_img
 ```
 
-- AutoEncoder  
+- [AutoEncoder](https://github.com/junginkim23/Business_Analytics_tutorial/blob/master/Anomaly_Detection/utils/AE.py)  
     - Six linear layers are stacked on each of the encoder and decoder, and the relu function is used in the encoder and the tanh activation function is used in the decoder.
 
 ```
@@ -113,7 +113,7 @@ class AE(nn.Module):
         return decode
 ```
 
-- train 
+- [train](https://github.com/junginkim23/Business_Analytics_tutorial/blob/master/Anomaly_Detection/utils/train.py) 
 
     - It trains for a total of 160 epochs and stores the weights of the trained model every 20 epochs. In addition, by recording the loss every epoch while learning is in progress, you can check the loss after learning is finished. As can be seen from the results, in the case of fake images, the loss is maintained without being reduced, but in the case of normal images, it is confirmed that the loss is reduced. Finally, a model that has run all 160 epochs is used.
 
@@ -188,7 +188,8 @@ fake epoch [8/160] | loss:1.0585 | Time 12.5770
 
 - epoch 150
 <p align='center'><img src="./save_img/epoch150.jpg" width='1000' height='300'></p>
-- inference 
+
+- [inference](https://github.com/junginkim23/Business_Analytics_tutorial/blob/master/Anomaly_Detection/utils/test.py) 
 
     - For inference, we use the model trained for 160 epochs and check the MSE displot of normal and fake images. The figure below confirms that the two data are well separated.
     - In the figure, 0 corresponds to a normal image and 1 corresponds to a fake image.
