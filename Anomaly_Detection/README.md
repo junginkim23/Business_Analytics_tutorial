@@ -171,7 +171,6 @@ fake epoch [8/160] | loss:1.0585 | Time 12.5770
 
 - epoch 10 
 
-                real                                         fake    
 <p align='center'><img src="./save_img/epoch10.jpg" width='1000' height='300'></p>
 
 - epoch 150
