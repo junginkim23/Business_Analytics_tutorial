@@ -19,7 +19,11 @@ Before diving into the tutorial, what is an autoencoder?
 
 **python tutorial**
 
-- MNIST and cifar-10 data sets were used, and fake images were created for train and inference . MSE Loss was used as the loss function and Adam was used as the optimizer to perform training. As a final result, check the loss plot between the normal image and the abnormal image. In addition, it can be seen that abnormality is detected by checking the distribution of normal and abnormal data.
+- hypothesis : The autoencoder will have a very low MSE value when normal data comes in. On the other hand, when abnormal data comes in, a high MSE value is derived.
+
+- Since learning was conducted to reduce the difference between the input and output of normal data, of course, if it was well learned, the MSE value according to the input of normal data would get a very low value.
+
+- MNIST data sets is used, and fake images were created for train and inference . MSE Loss was used as the loss function and Adam was used as the optimizer to perform training. As a final result, check the loss plot between the normal image and the abnormal image. In addition, it can be seen that abnormality is detected by checking the distribution of normal and abnormal data.
 
 ```
 def main():
@@ -95,6 +99,8 @@ class AE(nn.Module):
 
 - [train](https://github.com/junginkim23/Business_Analytics_tutorial/blob/master/Anomaly_Detection/utils/train.py) 
 
+    - Learning is performed with 60,000 normal data, and additional learning is performed with data mixed with some noise.
+
     - It trains for a total of 160 epochs and stores the weights of the trained model every 20 epochs. In addition, by recording the loss every epoch while learning is in progress, you can check the loss after learning is finished. As can be seen from the results, in the case of fake images, the loss is maintained without being reduced, but in the case of normal images, it is confirmed that the loss is reduced. Finally, a model that has run all 160 epochs is used.
 
 ```
@@ -164,6 +170,8 @@ fake epoch [8/160] | loss:1.0585 | Time 12.5770
 - Results of normal and fake images reconstructed using a model trained for 10 epochs and 160 epoch
 
 - epoch 10 
+
+                real                                         fake    
 <p align='center'><img src="./save_img/epoch10.jpg" width='1000' height='300'></p>
 
 - epoch 150
@@ -186,6 +194,7 @@ def test(self):
             pred_ab = self.model(self.fake_imgs)
             fake = (self.fake_imgs-pred_ab).data.cpu().numpy()
             fake = np.sum(fake**2, axis=1)
+            print(f'fake img loss 최대값 : {fake.max()}')
 
             # normal img
             img = self.loader.dataset.data
@@ -197,7 +206,16 @@ def test(self):
 
             real = (img - pred).data.cpu().numpy()
             real = np.sum(real**2,axis=1)
-            
+            print(f'normal img loss 최대값 : {real.max()}')
+
         self.make_plt(real,fake)
+
+## output
+fake img loss 최대값 : 1036.28076171875
+normal img loss 최대값 : 119.19554901123047
 ```
 <p align='center'><img src="./save_img/img.png" width='500' height='400'></p>
+
+Conclusion 
+
+- Using MNIST data as normal and randomly creating fake img as abnormal, the distribution difference between normal and abnormal is clearly visible. However, if there is something to be desired, I wanted to evaluate the performance of the model itself with an appropriate threshold by obtaining an anomaly score with the value obtained by calculating the MSE loss function between the input image and the restored image, but It was difficult to try because the distribution of MSE loss values ​​for normal and abnormal data was too different. Although I couldn't do it in this tutorial, I plan to try it before the end of this semester.

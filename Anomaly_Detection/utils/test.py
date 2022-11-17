@@ -29,7 +29,7 @@ class Tester:
             pred_ab = self.model(self.fake_imgs)
             fake = (self.fake_imgs-pred_ab).data.cpu().numpy()
             fake = np.sum(fake**2, axis=1)
-
+            print(f'fake img loss 최대값 : {fake.max()}')
             # normal img
             img = self.loader.dataset.data
             img = img.view(img.size(0),-1)
@@ -40,7 +40,8 @@ class Tester:
 
             real = (img - pred).data.cpu().numpy()
             real = np.sum(real**2,axis=1)
-            
+            print(f'normal img loss 최대값 : {real.max()}')
+
         self.make_plt(real,fake)
 
     def _load_model(self, ckpt):
