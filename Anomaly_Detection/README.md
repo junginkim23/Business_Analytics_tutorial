@@ -210,8 +210,8 @@ def test(self):
         self.make_plt(real,fake)
 
 ## output
-fake img loss 최대값 : 1036.28076171875
-normal img loss 최대값 : 119.19554901123047
+fake img loss 최대값 : 1.2667418718338013
+normal img loss 최대값 : 0.2981035113334656
 ```
 <p align='center'><img src="./save_img/img.png" width='500' height='400'></p>
 

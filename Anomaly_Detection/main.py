@@ -32,8 +32,8 @@ def main():
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.w_d)
 
-    trainer = Trainer(args,train_fake_img,dataloader,model,criterion,optimizer)
-    trainer.train()
+    # trainer = Trainer(args,train_fake_img,dataloader,model,criterion,optimizer)
+    # trainer.train()
     tester = Tester(args,test_fake_img,dataloader,model)
     tester.test()
 

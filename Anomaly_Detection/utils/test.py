@@ -9,6 +9,7 @@ from torch.autograd import Variable
 import seaborn as sns
 import matplotlib.pyplot as plt
 import os 
+import torch.nn as nn 
 
 class Tester:
     def __init__(self,args,imgs,loader,model):
@@ -16,7 +17,8 @@ class Tester:
         self.fake_imgs = imgs
         self.loader = loader
         self.model = model
-    
+        self.loss = nn.MSELoss().to(self.args.device)
+
     def test(self):
         save_file = os.path.join(self.args.ckpt_dir,f'epoch{self.args.epochs}.pt')
         ckpt = torch.load(save_file)
@@ -29,7 +31,8 @@ class Tester:
             pred_ab = self.model(self.fake_imgs)
             fake = (self.fake_imgs-pred_ab).data.cpu().numpy()
             fake = np.sum(fake**2, axis=1)
-            print(f'fake img loss 최대값 : {fake.max()}')
+            print(f'fake img loss 최대값 : {self.loss(pred_ab,self.fake_imgs).max()}')
+            
             # normal img
             img = self.loader.dataset.data
             img = img.view(img.size(0),-1)
@@ -40,7 +43,7 @@ class Tester:
 
             real = (img - pred).data.cpu().numpy()
             real = np.sum(real**2,axis=1)
-            print(f'normal img loss 최대값 : {real.max()}')
+            print(f'normal img loss 최대값 : {self.loss(pred,img).max()}')
 
         self.make_plt(real,fake)
 

@@ -18,7 +18,7 @@ def make_noisy_data(mode):
         fake_img = Variable(fake_img).cuda()
     else:
         img_size = 28
-        n_fake_img = 60000
+        n_fake_img = 30000
         fake_img = []
 
         for i in tqdm(range(n_fake_img)):
