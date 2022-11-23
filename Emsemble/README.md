@@ -13,6 +13,7 @@
 
 - 앙상블 학습은 크게 Bagging & Boosting 두 가지로 나뉜다. 
 
+<p align='center'><img src="./img/total.jpg" width='700' height='300'></p>
 
 2-1. Bagging 
 - Bagging은 Booststrap Aggregation의 약자로 한 데이터 셋에서 샘플을 복원 추출하여 여러 데이터 셋인 Bootstrap을 만들어 각 모델을 학습시켜 결과물을 집계(Aggregation)하여 최종 결과 값을 만드는 방법이다. 
