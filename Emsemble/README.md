@@ -110,7 +110,7 @@
             X_train[col] = X_train[col].astype(int)
     ```
 
-    2. Variance Inflation Factors (VIF)
+    2. Variance Inflation Factors (VIF) & RFE 
 
         - 독립변수의 수가 48개로 많다보니 독립변수간 상관 관계가 심한 변수는 제외하기 위해 VIF를 사용하여 독립 변수간 상관 관계의 척도를 측정한다. 
 
@@ -196,7 +196,10 @@
     ['stnNm', 'tm', 'sex', 'sumRn', 'maxWs', 'avgWs', 'minRhm', 'avgRhm', 'avgPa', 'avgPs', '10세이하_인구수', '100세이상_인구수', 'SPI1', 'SPI2', 'SPI3', 'SPI4', 'SPI5', 'SPI6', 'SPI9', 'SPI12', 'SPI18', 'SPI24', '미세먼지농도', '예보_강수확률', '예보_습도', '예보_일최고기온', '예보_풍속', '예보_풍향']
     ```
 
-    3. 학습 진행 
+    - Recursive Feaature Elimination (RFE) - 설명    
+
+
+    3. 모델링
         - 학습을 위해 사용한 모델은 XGBoost, Random Forest, LightGBM, Stacking(XGBoost, Random Forest, LightGBM, Ridge, Lasso)이다. 
         - 각 모델 별 성능 확인 이후 최종 가장 좋은 성능을 나타내는 모델에 대해 shap 방법론을 사용해 사후 분석을 진행할 예정이다. 
         - 각 모델의 하이퍼 파라미터 튜닝을 위해 optuna 기법을 적용해서 최적의 파라미터를 산출하는 것도 포함한다.
@@ -249,6 +252,15 @@
         
         return study_lgb
     ```
+
+    4. 검증 및 평가 
+        - 학습이 끝난 XGBoost, LGBM, Random Forest, Stacking 예측 모델에 검증 데이터를 이용하여 예측을 진행하고 예측값과 실제값간에 성능 평가를 진행한다.
+        - 평가를 위해 RMSE, MSE, MAE, RMSE를 사용한다. 
+        - 각 결과는 아래 표와 같다.
+        - 
+    5. 사후 분석
+        
+    6. 결론
 
 **Reference**
 - swallow.github.io
