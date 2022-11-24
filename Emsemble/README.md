@@ -56,7 +56,6 @@
 4. 배깅과 부스팅의 차이 
 - 배깅은 병렬로 학습이 되는 반면에 부스팅은 순차적으로 학습하는 것이 가장 큰 차이점이다. 
 
-
 - 즉, 부스팅은 한 번 학습이 끝나면 오답에 대해서는 높은 가중치를 부여하고 정답에 대해서는 낮은 가중치를 부여한다. 오답에 더 집중할 수 있게 해주는 역할을 가중치를 활용해 하게 되는 것이다. 
 
 - 다만, 부스팅은 배깅에 비해 에러가 굉장히 적고 성능이 좋지만 속도가 상대적으로 느리고 과적합될 가능성이 크다. 따라서 상황에 따른 적절한 방법을 선택하여 사용하는 것이 중요하다.
@@ -66,6 +65,190 @@
 ---
 
 **Tutorial**
+
+- **개요**
+    - 이번 튜토리얼에서 사용할 데이터는 심뇌혈관 질환 발생빈도에 대한 데이터(일별, 성별, 시/도별)와 각 시/도별 대표지역의 예보 데이터(직접 전처리 진행)이다. 
+
+    - 해당 데이터를 통해 최종적으로 예측하고자 하는 대상은 각 지역별 심뇌혈관 발생 빈도이다. 
+
+    - 본 튜터리얼에서는 Ensemble 기법 중 Bagging, Boosting의 대표적인 방법인 Randomforest, XGBoost, LightGBM을 사용하고 추가적으로 Lidge와 Lasso까지 결합한 stacking 기법까지 적용하여 결과를 확인한다.
+
+    - 학습을 진행할 때 사용되는 변수의 수가 많기 때문에 Feature selection 기법 2가지를 적용하여 target에 영향을 주는 변수만을 뽑아 학습과 검증을 진행할 예정이다.
+
+    - 마지막으로 사후분석에 자주 사용되는 explainable AI(XAI) 방법론의 하나인 SHAP를 사용하여 모델이 중요하게 보는 변수와 해당 변수의 영향력에 대한 분석을 진행한다. 
+
+- **데이터** 
+
+    - 학습에 사용되는 데이터의 수는 총 49674개이며 변수의 수는 총 48개이다. 
+    - 검증에 사용되는 데이터의 수는 총 12444개이며 변수의 수는 동일하다.
+    - 변수는 지역명, 성별, 최고 기온, 최저 기온, 평균 강수량, 체감 온도, 총 인구수, 각 나이대별 인구수, 예보 데이터(풍속, 풍향, 기온..) 등이 사용된다. 
+
+    <p align='center'><img src="./img/data.jpg" width='1500' height='150'></p>
+
+    1. 전처리 
+        - 먼저, 결측치를 대체하거나 제거하는 작업을 실시한다. 
+        - 특히, 세종시의 경우 2012년 7월에 설립되었기 때문에 1월~6월 사이의 데이터는 존재하지 않는다. 이러한 경우 세종시에 남아 있는 데이터는 2012년 7월 이후 데이터를 기준으로 평균값으로 결측치를 대체한다. 
+        - 이외에 지역별로 결측값이 존재한다면 주변 지역의 데이터를 사용해 K-means를 사용해 결측값을 대체한다. 
+        - 모델 학습의 입력으로 사용하기 위해서 지역명과 같은 object 형태의 데이터는 labelencoder를 사용해 encoding을 진행한다. 
+
+    ```
+    # Simple preprocessing and standardization of train data
+    le = LabelEncoder()
+
+    train = pd.read_csv('./data/train.csv') # Replacing Missing values using k-means
+    X_train = train.drop(['freq'],axis = 1)
+    y_train = train['freq']
+
+    # Used to encode stnNm features
+    le.fit(X_train['stnNm'])
+    X_train['stnNm'] = le.transform(X_train['stnNm'])
+
+    # Converting to an integer type of feature related to the population 
+    for col in X_train.columns:
+        if X_train[col].dtype == 'object':
+            X_train[col] = X_train[col].apply(lambda x : x.replace(',',''))
+            X_train[col] = X_train[col].astype(int)
+    ```
+
+    2. Variance Inflation Factors (VIF)
+
+        - 독립변수의 수가 48개로 많다보니 독립변수간 상관 관계가 심한 변수는 제외하기 위해 VIF를 사용하여 독립 변수간 상관 관계의 척도를 측정한다. 
+
+        - 간단하게 말하면, VIF는 다중 회귀 모델에서 독립 변수간 상관 관계 유무를 파악하는 척도로서 VIF 수치가 10이 넘으면 다중 공산성이 있다고 판단하고 5가 넘의면 주의 수준으로 판단한다. 
+
+        - vif를 통해 제거된 변수는 총 20개('10대_인구수','총_인구수','40대_인구수','avgTa','20대_인구수','예보_3시간기온','60대_인구수','90대_인구수','체감온도','avgTd','30대_인구수','예보_일최저기온','70대_인구수','minTa','avgTs','50대_인구수','80대_인구수','minTg','maxTa','avgPv')이고 남은 변수 28개의 변수로 학습을 진행한다.
+
+    ```
+    def check_vif(dataframe):
+        dataframe = add_constant(dataframe)
+        vif = pd.DataFrame()
+        vif["VIF Factor"] = [variance_inflation_factor(
+            dataframe.values, i) for i in range(dataframe.shape[1])]
+        vif["features"] = dataframe.columns
+        return vif
+    
+    remove_list = []
+    t1 = time.time()
+    X_train_vif = X_train.copy()
+
+    for _ in range(1000):
+        
+        vif = check_vif(X_train_vif)
+
+        if len(vif[vif['VIF Factor'] >=10]) >=1:
+            vif_value = round(vif[vif['VIF Factor'] >=10].sort_values('VIF Factor', ascending=False).iloc[0,0],3)
+            remove_col = vif[vif['VIF Factor'] >=10].sort_values('VIF Factor', ascending=False).iloc[0,1]
+
+            if (remove_col == 'const') & (vif[vif['VIF Factor'] >=10].shape[0] == 1):
+                print('VIF가 10이 넘는 변수가 없습니다. === FOR LOOP을 종료합니다.')
+                break
+
+            elif (remove_col == 'const') & (vif[vif['VIF Factor'] >=10].shape[0] != 1):
+                vif_value = round(vif[vif['VIF Factor'] >=10].sort_values('VIF Factor', ascending=False).iloc[1,0],3)
+                remove_col = vif[vif['VIF Factor'] >=10].sort_values('VIF Factor', ascending=False).iloc[1,1]
+                remove_list.append(remove_col)
+                X_train_vif.drop(remove_col, axis=1, inplace=True)
+                t2 = time.time()
+                elapsed_time = t2-t1
+                print('VIF값이 '+str(vif_value)+'인 '+remove_col+'이 제거되었습니다. === 현재 총 제거된 변수의 개수는 '+str(len(remove_list))+'개 입니다. === 경과된 시간: '+str(round(elapsed_time/60))+'분')
+
+            else:
+                remove_list.append(remove_col)
+                X_train_vif.drop(remove_col, axis=1, inplace=True)
+                t2 = time.time()
+                elapsed_time = t2-t1
+                print('VIF값이 '+str(vif_value)+'인 '+remove_col+'이 제거되었습니다. === 현재 총 제거된 변수의 개수는 '+str(len(remove_list))+'개 입니다. === 경과된 시간: '+str(round(elapsed_time/60))+'분')
+
+
+        else:
+            print('VIF가 10이 넘는 변수가 없습니다. === FOR LOOP을 종료합니다.')
+            break
+
+    vif_col = X_train_vif.columns.to_list()
+    test_vif = test[vif_col]
+
+    print(vif_col)
+
+    ### output 
+    VIF값이 inf인 10대_인구수이 제거되었습니다. === 현재 총 제거된 변수의 개수는 1개 입니다. === 경과된 시간: 0분
+    VIF값이 40779.5인 총_인구수이 제거되었습니다. === 현재 총 제거된 변수의 개수는 2개 입니다. === 경과된 시간: 0분
+    VIF값이 1947.383인 40대_인구수이 제거되었습니다. === 현재 총 제거된 변수의 개수는 3개 입니다. === 경과된 시간: 0분
+    VIF값이 1871.255인 avgTa이 제거되었습니다. === 현재 총 제거된 변수의 개수는 4개 입니다. === 경과된 시간: 0분
+    VIF값이 1400.256인 20대_인구수이 제거되었습니다. === 현재 총 제거된 변수의 개수는 5개 입니다. === 경과된 시간: 0분
+    VIF값이 1300.126인 예보_3시간기온이 제거되었습니다. === 현재 총 제거된 변수의 개수는 6개 입니다. === 경과된 시간: 0분
+    VIF값이 651.233인 60대_인구수이 제거되었습니다. === 현재 총 제거된 변수의 개수는 7개 입니다. === 경과된 시간: 0분
+    VIF값이 421.694인 90대_인구수이 제거되었습니다. === 현재 총 제거된 변수의 개수는 8개 입니다. === 경과된 시간: 0분
+    VIF값이 412.492인 체감온도이 제거되었습니다. === 현재 총 제거된 변수의 개수는 9개 입니다. === 경과된 시간: 0분
+    VIF값이 277.595인 avgTd이 제거되었습니다. === 현재 총 제거된 변수의 개수는 10개 입니다. === 경과된 시간: 0분
+    VIF값이 176.414인 30대_인구수이 제거되었습니다. === 현재 총 제거된 변수의 개수는 11개 입니다. === 경과된 시간: 1분
+    VIF값이 104.127인 예보_일최저기온이 제거되었습니다. === 현재 총 제거된 변수의 개수는 12개 입니다. === 경과된 시간: 1분
+    VIF값이 97.605인 70대_인구수이 제거되었습니다. === 현재 총 제거된 변수의 개수는 13개 입니다. === 경과된 시간: 1분
+    VIF값이 94.824인 minTa이 제거되었습니다. === 현재 총 제거된 변수의 개수는 14개 입니다. === 경과된 시간: 1분
+    VIF값이 40.373인 avgTs이 제거되었습니다. === 현재 총 제거된 변수의 개수는 15개 입니다. === 경과된 시간: 1분
+    VIF값이 33.283인 50대_인구수이 제거되었습니다. === 현재 총 제거된 변수의 개수는 16개 입니다. === 경과된 시간: 1분
+    VIF값이 26.77인 80대_인구수이 제거되었습니다. === 현재 총 제거된 변수의 개수는 17개 입니다. === 경과된 시간: 1분
+    VIF값이 26.576인 minTg이 제거되었습니다. === 현재 총 제거된 변수의 개수는 18개 입니다. === 경과된 시간: 1분
+    VIF값이 21.878인 maxTa이 제거되었습니다. === 현재 총 제거된 변수의 개수는 19개 입니다. === 경과된 시간: 1분
+    VIF값이 11.304인 avgPv이 제거되었습니다. === 현재 총 제거된 변수의 개수는 20개 입니다. === 경과된 시간: 1분
+    VIF가 10이 넘는 변수가 없습니다. === FOR LOOP을 종료합니다.
+
+    vif를 사용해서 제거하고 남은 변수 : 
+    ['stnNm', 'tm', 'sex', 'sumRn', 'maxWs', 'avgWs', 'minRhm', 'avgRhm', 'avgPa', 'avgPs', '10세이하_인구수', '100세이상_인구수', 'SPI1', 'SPI2', 'SPI3', 'SPI4', 'SPI5', 'SPI6', 'SPI9', 'SPI12', 'SPI18', 'SPI24', '미세먼지농도', '예보_강수확률', '예보_습도', '예보_일최고기온', '예보_풍속', '예보_풍향']
+    ```
+
+    3. 학습 진행 
+        - 학습을 위해 사용한 모델은 XGBoost, Random Forest, LightGBM, Stacking(XGBoost, Random Forest, LightGBM, Ridge, Lasso)이다. 
+        - 각 모델 별 성능 확인 이후 최종 가장 좋은 성능을 나타내는 모델에 대해 shap 방법론을 사용해 사후 분석을 진행할 예정이다. 
+        - 각 모델의 하이퍼 파라미터 튜닝을 위해 optuna 기법을 적용해서 최적의 파라미터를 산출하는 것도 포함한다.
+        - LGBM의 경우 튜닝하는 하이퍼 파라미터는 learning rate, num_leaves, colsample_bytree, subsample, max_depth, min_child_sample, reg_alpha, reg_lambda, cat_smooth, min_split_gain, max_bin, boosting_type, bagging_fraction, bagging_freq으로 최적의 파라미터 탐색을 진행한다. 
+        - 특히, 어느 정도 깊이일 때가 최적일지에 대한 것도 확인해보려 한다. 
+
+    ```
+    def lgb_objective(trial):
+        lgb_learning_rate = trial.suggest_float('learning_rate', 0.04, 0.4)
+        lgb_leaves= trial.suggest_int('num_leaves', 10, 1000)
+        lgb_bytree = trial.suggest_float("colsample_bytree", 0.1,0.3)
+        lgb_subsample = trial.suggest_float("subsample", 0.1,0.3)
+        lgb_depth =  trial.suggest_int('max_depth', 3, 100)
+        lgb_child_samples = trial.suggest_int('min_child_samples', 3, 2000)
+        lgb_alpha =  trial.suggest_loguniform('reg_alpha', 1e-8, 10.0)
+        lgb_lambda = trial.suggest_loguniform('reg_lambda', 1e-8, 1.0)
+        lgb_smooth = trial.suggest_int('cat_smooth', 1, 100)
+        lgb_gain_to_split = trial.suggest_float('min_split_gain', 0.0, 30.0)
+        lgb_max_bin = trial.suggest_int('max_bin',2,100)
+        lgb_boosting = trial.suggest_categorical('boosting_type', ['gbdt','dart'])
+        lgb_bagging = trial.suggest_uniform('bagging_fraction', 0.1, 1.0)
+        lgb_bagging_freq =  trial.suggest_int('bagging_freq', 0, 15)
+
+        regressor_obj = LGBMRegressor(boosting_type=lgb_boosting,objective='regression', metric='rmse', verbosity = -1,num_leaves=lgb_leaves,learning_rate=lgb_learning_rate
+                                    ,colsample_bytree= lgb_bytree, subsample=lgb_subsample, max_depth=lgb_depth, min_child_samples=lgb_child_samples,reg_alpha=lgb_alpha,
+                                    reg_lambda=lgb_lambda,cat_smooth=lgb_smooth,min_split_gain=lgb_gain_to_split,max_bin = lgb_max_bin
+                                    ,bagging_fraction=lgb_bagging,bagging_freq=lgb_bagging_freq)
+                                
+
+        rmse = np.sqrt(-cross_val_score(regressor_obj, X_train, y_train, scoring="neg_mean_squared_error", cv = 12, n_jobs=8))
+        rmse =  np.mean(rmse)
+        return rmse
+
+    def LGBMregreesr(trials):
+        sampler = TPESampler(seed=42) # TPESampler --> MAE가 최소가 되는 방향으로 학습 진행 (MAE: 평균절대오차!)
+
+        study_lgb = optuna.create_study(direction='minimize', sampler=sampler)
+        study_lgb.optimize(lgb_objective, n_trials=trials)
+
+        print("Number of finished trials: {}".format(len(study_lgb.trials)))
+
+        print("Best trial:")
+        trial = study_lgb.best_trial
+
+        print("  Value: {}".format(trial.value))
+
+        print("  Params: ")
+        for key, value in trial.params.items():
+            print("    {}: {}".format(key, value))
+        
+        return study_lgb
+    ```
 
 **Reference**
 - swallow.github.io
