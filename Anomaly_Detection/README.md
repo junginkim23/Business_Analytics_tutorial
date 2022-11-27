@@ -355,6 +355,29 @@ Conclusion
 
             if (epoch+1)%20==0:
                 self._save_model(epoch)
+
+        ### output ###
+        epoch [1/100] | loss:0.9084 | Time 28.9553
+        epoch [2/100] | loss:0.8487 | Time 27.1374
+        epoch [3/100] | loss:0.8376 | Time 27.1088
+        epoch [4/100] | loss:0.8327 | Time 27.2086
+        epoch [5/100] | loss:0.8316 | Time 27.3007
+        epoch [6/100] | loss:0.8287 | Time 26.9340
+        epoch [7/100] | loss:0.8293 | Time 26.8045
+        epoch [8/100] | loss:0.8263 | Time 27.2709
+        epoch [9/100] | loss:0.8251 | Time 27.2491
+                            . 
+                            .
+                            .
+                            .
+        epoch [93/100] | loss:0.7860 | Time 29.0389
+        epoch [94/100] | loss:0.7863 | Time 27.7789
+        epoch [95/100] | loss:0.7861 | Time 27.1986
+        epoch [96/100] | loss:0.7866 | Time 29.6684
+        epoch [97/100] | loss:0.7903 | Time 27.3582
+        epoch [98/100] | loss:0.7865 | Time 27.0228
+        epoch [99/100] | loss:0.7920 | Time 27.0310
+        epoch [100/100] | loss:0.7891 | Time 27.4149
         ```
     
     - 모델 검증 
@@ -390,11 +413,14 @@ Conclusion
             print(f'f1 score : {f1}')
 
             return self.df
+        
+        ### output ###
+        f1 score : 0.007763462173769409
         ```
 
     - 결론
         - 지난 tutorial에서 아쉬웠던 부분을 직접 python 코드로 작성해보았다. 
         - 처음에 독립 변수 중 Amount 변수의 값 중 가장 큰 값이 348이었다. 해당 변수를 그대로 사용하였을 때 MSELoss 값이 너무 큰 값이 나와 StandardScaler를 사용해야겠다고 생각했다.
         - 사용한 후 loss 값이 1 이하의 값으로 산출된 것을 보고 데이터의 특성을 파악하는 사소한 부분 또한 조심해야 함을 알 수 있었다. 
-        - 해당 과정을 진행하면서 새로 생긴 궁금증은 epoch이 지나갈 때마다 생각보다 loss가 많이 줄지 않는다는 것이다. 다음에는 해당 부분에 대해서 고민을 한 번 해봐야 할 것 같다. 그 이유가 궁금하다.
+        - 해당 과정을 진행하면서 새로 생긴 궁금증은 epoch이 지나갈 때마다 생각보다 loss가 많이 줄지 않는다는 것이다. 다음에는 해당 부분에 대해서 고민을 한 번 해봐야 할 것 같다.
         - 아쉬웠던 부분을 해결하고 직접 코드를 짜볼 수 있는 뜻깊은 시간이 된 것 같다.
