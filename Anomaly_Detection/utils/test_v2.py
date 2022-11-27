@@ -53,7 +53,3 @@ class Tester:
         self.model.load_state_dict(ckpt['model'])
 
     
-    def make_plt(self,real,fake):
-        sns.displot([real,fake],color=['blue','red'])
-        plt.yticks(list(range(0,30000,5000)),labels=['0','0.05','0.1','0.15','0.2','0.25'],fontsize=10)
-        plt.savefig(os.path.join(self.args.save_img_dir,'img.png'))

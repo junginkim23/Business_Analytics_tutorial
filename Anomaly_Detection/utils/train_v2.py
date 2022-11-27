@@ -44,12 +44,6 @@ class Trainer:
             if (epoch+1)%20==0:
                 self._save_model(epoch)
 
-    def to_img(self,x):
-        x = 0.5 * (x + 1)
-        x = x.clamp(0, 1)
-        x = x.view(x.size(0), 1, 28, 28)
-        return x
-
     def _save_model(self,epoch):
         save_dict={
             'epoch': epoch,
