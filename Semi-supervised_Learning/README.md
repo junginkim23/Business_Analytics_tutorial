@@ -35,6 +35,12 @@
 
 - 본 튜터리얼에서는 MixMatch와 FixMatch 그리고 FlexMatch을 직접 구현하고 최종적으로 성능 비교를 해보려 한다. 실제 이론에서 성능은 FlexMatch > FixMatch > MixMatch로 알려져 있다. 따라서, 실제 이론과 부합하는지 확인하는 것(Top-1 ACC, Top-5 ACC)이 최종 목표이다. README 파일에서는 MixMatch에 관한 코드를 대표적으로 설명하고 FixMatch와 FlexMatch에 관한 코드는 업로드할 예정이다.
 
+- 모든 방법론에 관한 코드는 아래 방법론의 이름을 클릭하면 확인가능하다. 굉장히 많은 내용이 담겨 있어 하나 하나 설명하는데 어려움이 있어 이렇게 링크를 첨부하니 양해바랍니다. 
+
+    - [MixMatch]()
+    - [FixMatch]()
+    - [FlexMatch]()
+
 1. 활용 데이터 
 - CIFAR-10 : 컬러 이미지들로 구성되어 있고 총 6만개의 샘플을 갖고 있고 그 중 5만개는 훈련을 위한 것이고 1만개는 테스트를 위한 것이다. CIFAR-10의 이미지들은 이름에서 나타나듯이 10개의 클래스에 속하고 해당 클래스는 비행기, 자동차, 새, 고양이, 사슴, 개, 개구리, 말, 배, 트럭으로 구성되어 있다.
 
@@ -42,9 +48,113 @@
 
 2. MixMatch 
 
-- Hyperparamter Setting 
-    - argparser라는 패키지를 이용해 사용하는 Hyperparameter를 저장한다. 
-    - 대표적으로 Learning rate는 0.002 그리고 epoch수는 100으로 제한다. 
+    - WideResnet 
+        - 등장 배경 : 지금까지, CNN은 깊이를 증가시키는 방향으로 발전해왔다. 예를 들어, AlexNet, VGG, inception, ResNet과 같은 모델이 있다. 모델의 깊이가 깊어지는 만큼 기울기 소실 또는 기울기 폭발과 같은 문제가 발생한다. 이러한 문제를 해결하기 위해 ResNet은 residual block 개념을 제안하였고 이를 통해 뛰어난 성능을 확보할 수 있었다. 하지만 깊이가 아닌 ResNet의 넓이에 따른 정확도 양상을 실험하게 되고 이를 통해 WideResNet이 등장하게 되었다. WideResNet의 실험 결과를 통해 모델의 깊이를 증가시키는 것보다 효과적으로 성능을 향상시킬 수 있다는 점이다. 심지어 학습 속도 또한 몇 배는 빠른 결과를 도출할 수 있었다. 
+
+        - 본 튜터리얼에서는 WideResNet을 사용한다. MixMatch, FixMatch, FlexMatch 모두 동일한 WideResnet 코드를 사용한다. 
+
+        ```
+        # BasicBlock을 정의
+        class BasicBlock(nn.Module):
+            
+            def __init__(self, in_planes, out_planes, stride, dropRate=0.0, activate_before_residual=False):
+                super(BasicBlock, self).__init__()
+                self.bn1 = nn.BatchNorm2d(in_planes, momentum=0.001)
+                self.relu1 = nn.LeakyReLU(negative_slope=0.1, inplace=True)
+                self.conv1 = nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
+                                    padding=1, bias=False)
+                self.bn2 = nn.BatchNorm2d(out_planes, momentum=0.001)
+                self.relu2 = nn.LeakyReLU(negative_slope=0.1, inplace=True)
+                self.conv2 = nn.Conv2d(out_planes, out_planes, kernel_size=3, stride=1,
+                                    padding=1, bias=False)
+                self.droprate = dropRate
+                self.equalInOut = (in_planes == out_planes)
+                self.convShortcut = (not self.equalInOut) and nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride,
+                                    padding=0, bias=False) or None
+                self.activate_before_residual = activate_before_residual
+                
+            def forward(self, x):
+                if not self.equalInOut and self.activate_before_residual == True:
+                    x = self.relu1(self.bn1(x))
+                else:
+                    out = self.relu1(self.bn1(x))
+                out = self.relu2(self.bn2(self.conv1(out if self.equalInOut else x)))
+                if self.droprate > 0:
+                    out = F.dropout(out, p=self.droprate, training=self.training)
+                out = self.conv2(out)
+                return torch.add(x if self.equalInOut else self.convShortcut(x), out)
+
+            
+        # Network Block을 정의
+        class NetworkBlock(nn.Module):
+            
+            def __init__(self, nb_layers, in_planes, out_planes, block, stride, dropRate=0.0, activate_before_residual=False):
+                super(NetworkBlock, self).__init__()
+                self.layer = self._make_layer(block, in_planes, out_planes, nb_layers, stride, dropRate, activate_before_residual)
+                
+            def _make_layer(self, block, in_planes, out_planes, nb_layers, stride, dropRate, activate_before_residual):
+                layers = []
+                for i in range(int(nb_layers)):
+                    layers.append(block(i == 0 and in_planes or out_planes, out_planes, i == 0 and stride or 1, dropRate, activate_before_residual))
+                return nn.Sequential(*layers)
+            
+            def forward(self, x):
+                return self.layer(x)
+
+
+        # WideResNet 모델 정의
+        class WideResNet(nn.Module):
+            
+            
+            # 위에서 정의한 Basic Block 및 Network Block을 기반으로 Wide ResNet 모델 정의
+            
+            
+            def __init__(self, num_classes, depth=28, widen_factor=2, dropRate=0.0):
+                super(WideResNet, self).__init__()
+                nChannels = [16, 16*widen_factor, 32*widen_factor, 64*widen_factor]
+                assert((depth - 4) % 6 == 0)
+                n = (depth - 4) / 6
+                block = BasicBlock
+                # 1st conv before any network block
+                self.conv1 = nn.Conv2d(3, nChannels[0], kernel_size=3, stride=1,
+                                    padding=1, bias=False)
+                # 1st block
+                self.block1 = NetworkBlock(n, nChannels[0], nChannels[1], block, 1, dropRate, activate_before_residual=True)
+                # 2nd block
+                self.block2 = NetworkBlock(n, nChannels[1], nChannels[2], block, 2, dropRate)
+                # 3rd block
+                self.block3 = NetworkBlock(n, nChannels[2], nChannels[3], block, 2, dropRate)
+                # global average pooling and classifier
+                self.bn1 = nn.BatchNorm2d(nChannels[3], momentum=0.001)
+                self.relu = nn.LeakyReLU(negative_slope=0.1, inplace=True)
+                self.fc = nn.Linear(nChannels[3], num_classes)
+                self.nChannels = nChannels[3]
+
+                for m in self.modules():
+                    if isinstance(m, nn.Conv2d):
+                        n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+                        m.weight.data.normal_(0, math.sqrt(2. / n))
+                    elif isinstance(m, nn.BatchNorm2d):
+                        m.weight.data.fill_(1)
+                        m.bias.data.zero_()
+                    elif isinstance(m, nn.Linear):
+                        nn.init.xavier_normal_(m.weight.data)
+                        m.bias.data.zero_()
+
+            def forward(self, x):
+                out = self.conv1(x)
+                out = self.block1(out)
+                out = self.block2(out)
+                out = self.block3(out)
+                out = self.relu(self.bn1(out))
+                out = F.avg_pool2d(out, 8)
+                out = out.view(-1, self.nChannels)
+                return self.fc(out)
+        ```
+
+    <p align='center'><img src="./img/wide.jpg" width='500' height='200'></p>
+
+    - MixMatch, FixMatch 그리고 FlexMatch에서 사용된 hyperparameter는 argparser를 사용해 저장하였고 그 내용은 아래와 같다. 순서는 MixMatch, FixMatch, FlexMatch 순이다. 
 
     ```
     def MixMatch_parser():
@@ -59,215 +169,79 @@
         parser.add_argument('--T', default=0.5, type=float)
         parser.add_argument('--ema-decay', type=float, default=0.999)
 
-        parser.add_argument('--epochs', type=int, default=100)
+        parser.add_argument('--epochs', type=int, default=1024)
         parser.add_argument('--batch-size', type=int, default=64)
         parser.add_argument('--lr', type=float, default=0.002)
 
         return parser
     ```
 
- - Define Function 
+    ```
+    # Argument 정의
+    def FlexMatch_parser():
+        parser = argparse.ArgumentParser(description="FlexMatch PyTorch Implementation for BA")
+        
+        # method arguments
+        parser.add_argument('--n-labeled', type=int, default=4000) # labeled dat의 수
+        parser.add_argument('--n-classes', type=int, default=10) # Class의 수
+        parser.add_argument("--expand-labels", action="store_true", 
+                            help="expand labels to fit eval steps")
 
+        # training hyperparameters
+        parser.add_argument('--batch-size', type=int, default=64) # 배치 사이즈
+        parser.add_argument('--total-steps', default=2**20, type=int) # iteration마다 Scheduler가 적용되기에, Epoch가 아닌, Total-step을 정의
+        parser.add_argument('--eval-step', type=int, default=1024) # Evaluation Step의 수
+        parser.add_argument('--lr', type=float, default=0.03) # Learning rate
+        parser.add_argument('--weight-decay', type=float, default=5e-4) # Weight Decay 정도
+        parser.add_argument('--nesterov', action='store_true', default=True) # Nesterov Momentum
+        parser.add_argument('--warmup', type=float, default=0.0) # Warmup 정도
+
+        parser.add_argument('--use-ema', action='store_true', default=True) # EMA 사용여부
+        parser.add_argument('--ema-decay', type=float, default=0.999) # EMA에서 Decay 정도
+
+        parser.add_argument('--mu', type=int, default=7) # Labeled data의 mu배를 Unlabeled 데이터의 개수로 정의하기 위한 함수 (근데 위 Trainer에서는 안 쓰임)
+        parser.add_argument('--T', type=float, default=1.0) # Sharpening 함수에 들어가는 하이퍼 파라미터
+
+        parser.add_argument('--threshold', type=float, default=0.95) # Pseudo-Labeling이 진행되는 Threshold 정의
+        parser.add_argument('--lambda-u', type=float, default=1.0) # Loss 가중치 정도
+        return parser
+    ```
+
+    ```
+    # Argument 정의
+    def FlexMatch_parser():
+        parser = argparse.ArgumentParser(description="FlexMatch PyTorch Implementation for BA")
+        
+        # method arguments
+        parser.add_argument('--n-labeled', type=int, default=4000) # labeled dat의 수
+        parser.add_argument('--n-classes', type=int, default=10) # Class의 수
+        parser.add_argument("--expand-labels", action="store_true", 
+                            help="expand labels to fit eval steps")
+
+        # training hyperparameters
+        parser.add_argument('--batch-size', type=int, default=64) # 배치 사이즈
+        parser.add_argument('--total-steps', default=2**20, type=int) # iteration마다 Scheduler가 적용되기에, Epoch가 아닌, Total-step을 정의
+        parser.add_argument('--eval-step', type=int, default=1024) # Evaluation Step의 수
+        parser.add_argument('--lr', type=float, default=0.03) # Learning rate
+        parser.add_argument('--weight-decay', type=float, default=5e-4) # Weight Decay 정도
+        parser.add_argument('--nesterov', action='store_true', default=True) # Nesterov Momentum
+        parser.add_argument('--warmup', type=float, default=0.0) # Warmup 정도
+
+        parser.add_argument('--use-ema', action='store_true', default=True) # EMA 사용여부
+        parser.add_argument('--ema-decay', type=float, default=0.999) # EMA에서 Decay 정도
+
+        parser.add_argument('--mu', type=int, default=7) # Labeled data의 mu배를 Unlabeled 데이터의 개수로 정의하기 위한 함수 (근데 위 Trainer에서는 안 쓰임)
+        parser.add_argument('--T', type=float, default=1.0) # Sharpening 함수에 들어가는 하이퍼 파라미터
+
+        parser.add_argument('--threshold', type=float, default=0.95) # Pseudo-Labeling이 진행되는 Threshold 정의
+        parser.add_argument('--lambda-u', type=float, default=1.0) # Loss 가중치 정도
+        return parser
+    ```
+
+    - 최종적인 결과는 Top-1 ACC와 Top-5 ACC, 두 평가 지표를 활용하여 각 방법론의 성능을 확인한다. 
+        - Top-1 ACC : (확률 값이 가장 높은 범주와 실제 범주가 일치하는 관측치 수)/ 전체 관측치
+        - Top-5 ACC : (확률 값 상위 5개 중 실제 범주가 존재하는 관측치 수)/ 전체 관측치
     
-    ```
-    # Custom Transform함수를 정의한다. 즉, 2가지의 Augmentation을 산출한다.
-    class Transform_Twice:
-        
-        def __init__(self, transform):
-            self.transform = transform
-        
-        def __call__(self, img):
-            out1 = self.transform(img)
-            out2 = self.transform(img)
-            
-            return out1, out2
-    ```
-
-    ```
-    # Labeled data를 생성하는 함수
-
-    class Labeled_CIFAR10(torchvision.datasets.CIFAR10):
-        
-        def __init__(self, root, indices=None,
-                    train=True, transform=None,
-                    target_transform=None, download=False):
-            
-            super(Labeled_CIFAR10, self).__init__(root,
-                                            train=train,
-                                            transform=transform,
-                                            target_transform=target_transform,
-                                            download=download)
-
-            if indices is not None:
-                self.data = self.data[indices]
-                self.targets = np.array(self.targets)[indices]
-            
-            self.data = Transpose(Normalize(self.data))
-        
-        def __getitem__(self, index):
-            
-            img, target = self.data[index], self.targets[index]
-            
-            if self.transform is not None:
-                img = self.transform(img)
-            
-            if self.target_transform is not None:
-                target = self.target_transform(target)
-            
-            return img, target
-    ```
-
-    ```
-    # Unlabeled data를 생성하는 함수
-
-    # Unlabeled data의 Label은 -1로 지정
 
 
-    class Unlabeled_CIFAR10(Labeled_CIFAR10):
-        
-        def __init__(self, root, indices, train=True, transform=None, target_transform=None, download=False):
-            
-            super(Unlabeled_CIFAR10, self).__init__(root, indices, train,
-                                                transform=transform,
-                                                target_transform=target_transform,
-                                                download=download)
-            
-            self.targets = np.array([-1 for i in range(len(self.targets))])
-    ```
-
-    ```
-    # 데이터셋을 분할하기 위해서 Index를 섞는 함수 정의
-
-    def split_datasets(labels, n_labeled_per_class):
-        
-        '''
-        - n_labeled_per_class: labeled data의 개수
-        - 클래스 내 500개 데이터는 validation data로 정의
-        - 클래스 당 n_labeled_per_class 개수 만큼 labeled data로 정의
-        - 나머지 이미지는 unlabeled data로 정의
-        '''
-        
-        ### labeled, unlabeled, validation data 분할할 list 초기화
-        labels = np.array(labels, dtype=int) 
-        indice_labeled, indice_unlabeled, indice_val = [], [], [] 
-        
-        ### 각 class 단위로 loop 생성
-        for i in range(10): 
-
-            # 각각 labeled, unlabeled, validation data를 할당
-            indice_tmp = np.where(labels==i)[0]
-            
-            indice_labeled.extend(indice_tmp[: n_labeled_per_class])
-            indice_unlabeled.extend(indice_tmp[n_labeled_per_class: -500])
-            indice_val.extend(indice_tmp[-500: ])
-        
-        ### 각 index를 Shuffle
-        for i in [indice_labeled, indice_unlabeled, indice_val]:
-            np.random.shuffle(i)
-        
-        return indice_labeled, indice_unlabeled, indice_val
-    ```
-
-    ```
-    # CIFAR10에 대하여 labeled, unlabeled, validation, test dataset 생성
-
-    def get_cifar10(data_dir: str, n_labeled: int,
-                    transform_train=None, transform_val=None,
-                    download=True):
-        
-        ### Torchvision에서 제공해주는 CIFAR10 dataset Download
-        base_dataset = torchvision.datasets.CIFAR10(data_dir, train=True, download=download)
-        
-        ### labeled, unlabeled, validation data에 해당하는 index를 가져오기
-        indice_labeled, indice_unlabeled, indice_val = split_datasets(base_dataset.targets, int(n_labeled/10)) ### n_labeled는 아래 MixMatch_argparser 함수에서 정의
-        
-        ### index를 기반으로 dataset을 생성
-        '''
-        왜 unlabeled가 Transform_twice가 적용되었을까?
-        '''
-        train_labeled_set = Labeled_CIFAR10(data_dir, indice_labeled, train=True, transform=transform_train) 
-        train_unlabeled_set = Unlabeled_CIFAR10(data_dir, indice_unlabeled, train=True, transform=Transform_Twice(transform_train))
-        val_set = Labeled_CIFAR10(data_dir, indice_val, train=True, transform=transform_val, download=True) 
-        test_set = Labeled_CIFAR10(data_dir, train=False, transform=transform_val, download=True) 
-
-        return train_labeled_set, train_unlabeled_set, val_set, test_set
-    ```
-
-    ```
-    # Image를 전처리 하기 위한 함수
-
-    ### 데이터를 정규화 하기 위한 함수
-    def Normalize(x, m=(0.4914, 0.4822, 0.4465), std=(0.2471, 0.2345, 0.2616)):
-            
-        ##### x, m, std를 각각 array화
-        x, m, std = [np.array(a, np.float32) for a in (x, m, std)] 
-
-        ##### 데이터 정규화
-        x -= m * 255 
-        x *= 1.0/(255*std)
-        return x
-
-    ### 데이터를 (B, C, H, W)로 수정해주기 위한 함수 (from torchvision.transforms 내 ToTensor 와 동일한 함수)
-    def Transpose(x, source='NHWC', target='NCHW'):
-        return x.transpose([source.index(d) for d in target])
-
-    ### 특정 이미지에 동서남북 방향으로 4만큼 픽셀을 추가해주기 위한 학습
-    def pad(x, border=4):
-        return np.pad(x, [(0, 0), (border, border), (border, border)], mode='reflect')
-    ```
-
-
-    ```
-    # Image를 Augmentation하기 위한 함수
-
-    ### Image를 Padding 및 Crop적용
-
-    1. object는 써도 되고 안써도 되는 것
-    2. assert는 오류를 유도하기 위함 (나중에 이렇게 해놓으면 디버깅이 편함) --> 여기선 적절한 데이터 인풋의 형태를 유도
-
-    class RandomPadandCrop(object):
-        def __init__(self, output_size):
-            assert isinstance(output_size, (int, tuple))
-            if isinstance(output_size, int):
-                self.output_size = (output_size, output_size)
-            else:
-                assert len(output_size) == 2
-                self.output_size = output_size
-        
-        def __call__(self, x):
-            x = pad(x, 4)
-            
-            old_h, old_w = x.shape[1: ]
-            new_h, new_w = self.output_size
-            
-            top = np.random.randint(0, old_h-new_h)
-            left = np.random.randint(0, old_w-new_w)
-            
-            x = x[:, top:top+new_h, left:left+new_w]
-            return x
-        
-        
-    ### RandomFlip하는 함수 정의
-    class RandomFlip(object):
-        def __call__(self, x):
-            if np.random.rand() < 0.5:
-                x = x[:, :, ::-1]
-            
-            return x.copy()
-        
-        
-    ### GaussianNoise를 추가하는 함수 정의
-    class GaussianNoise(object):
-        def __call__(self, x):
-            c, h, w = x.shape
-            x += np.random.randn(c, h, w)*0.15
-            return x
-    ```
-
-    ```
-    # Numpy를 Tensor로 변환하는 함수
-    class ToTensor(object):
-        def __call__(self, x):
-            x = torch.from_numpy(x)
-            return x
-    ```
+    - 위에 표에서 확인할 수 있듯이 
