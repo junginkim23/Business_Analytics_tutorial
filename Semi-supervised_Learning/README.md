@@ -37,9 +37,9 @@
 
 - 모든 방법론에 관한 코드는 아래 방법론의 이름을 클릭하면 확인가능하다. 굉장히 많은 내용이 담겨 있어 하나 하나 설명하는데 어려움이 있어 이렇게 링크를 첨부하니 양해바랍니다. 
 
-    - [MixMatch]()
-    - [FixMatch]()
-    - [FlexMatch]()
+    - [MixMatch](https://github.com/junginkim23/Business_Analytics_tutorial/blob/master/Semi-supervised_Learning/MixMatch.ipynb)
+    - [FixMatch](https://github.com/junginkim23/Business_Analytics_tutorial/blob/master/Semi-supervised_Learning/FixMatch.ipynb)
+    - [FlexMatch](https://github.com/junginkim23/Business_Analytics_tutorial/blob/master/Semi-supervised_Learning/FlexMatch.ipynb)
 
 1. 활용 데이터 
 - CIFAR-10 : 컬러 이미지들로 구성되어 있고 총 6만개의 샘플을 갖고 있고 그 중 5만개는 훈련을 위한 것이고 1만개는 테스트를 위한 것이다. CIFAR-10의 이미지들은 이름에서 나타나듯이 10개의 클래스에 속하고 해당 클래스는 비행기, 자동차, 새, 고양이, 사슴, 개, 개구리, 말, 배, 트럭으로 구성되어 있다.
