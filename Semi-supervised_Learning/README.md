@@ -17,14 +17,14 @@
 
 **준지도 학습의 대표적인 방법론에 대한 한 줄 설명** 
 
-2. MixMatch
+2. [MixMatch](https://github.com/junginkim23/Business_Analytics_tutorial/blob/master/Semi-supervised_Learning/pdf/MixMatch.pdf)
 - 기존 준지도 학습 방법 Consistency Regularization, Entropy Minimization, Traditional Regularization (Mix Up)을 결합한 방법론 
 
-3. FixMatch
+3. [FixMatch](https://github.com/junginkim23/Business_Analytics_tutorial/blob/master/Semi-supervised_Learning/pdf/FixMatch.pdf)
 - MixMatch와 ReMixMatch의 경우 성능 고도화를 위해 주요 기법들을 추가 및 혼합하는 방향으로 발전함 
 - 지나치게 정교한 loss term과 조정하기 어려운 수 많은 사용자 정의 파라미터를 사용하는 형태
 
-4. FlexMatch
+4. [FlexMatch](https://github.com/junginkim23/Business_Analytics_tutorial/blob/master/Semi-supervised_Learning/pdf/FlexMatch.pdf)
 - 분류가 쉬운 범주의 경우 처음부터 Confidence가 높은 데이터가 다수 Pseudo Labeling이 되어 계속 더 잘 학습할 수 있게 유도되지만 분류가 어려운 범주는 Confidence가 높은 레이블이 없는 데이터가 많지 않기 때문에 비지도 학습의 본 의도인 레이블이 없는 데이터의 정보 활용이 어렵다는 문제가 존재
 - 따라서, 모든 클래스에 동일한 Confidence 기준을 적용하지 않고 각 클래스의 난이도에 따른 다른 기준을 적용하는 것이 핵심! 
 
