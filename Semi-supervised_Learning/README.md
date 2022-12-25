@@ -179,8 +179,8 @@
 
     ```
     # Argument 정의
-    def FlexMatch_parser():
-        parser = argparse.ArgumentParser(description="FlexMatch PyTorch Implementation for BA")
+    def FixMatch_parser():
+        parser = argparse.ArgumentParser(description="FixMatch PyTorch Implementation for BA")
         
         # method arguments
         parser.add_argument('--n-labeled', type=int, default=4000) # labeled dat의 수
@@ -190,8 +190,8 @@
 
         # training hyperparameters
         parser.add_argument('--batch-size', type=int, default=64) # 배치 사이즈
-        parser.add_argument('--total-steps', default=2**20, type=int) # iteration마다 Scheduler가 적용되기에, Epoch가 아닌, Total-step을 정의
-        parser.add_argument('--eval-step', type=int, default=1024) # Evaluation Step의 수
+        parser.add_argument('--total-steps', default=9000, type=int) # iteration마다 Scheduler가 적용되기에, Epoch가 아닌, Total-step을 정의
+        parser.add_argument('--eval-step', type=int, default=300) # Evaluation Step의 수
         parser.add_argument('--lr', type=float, default=0.03) # Learning rate
         parser.add_argument('--weight-decay', type=float, default=5e-4) # Weight Decay 정도
         parser.add_argument('--nesterov', action='store_true', default=True) # Nesterov Momentum
@@ -221,8 +221,8 @@
 
         # training hyperparameters
         parser.add_argument('--batch-size', type=int, default=64) # 배치 사이즈
-        parser.add_argument('--total-steps', default=2**20, type=int) # iteration마다 Scheduler가 적용되기에, Epoch가 아닌, Total-step을 정의
-        parser.add_argument('--eval-step', type=int, default=1024) # Evaluation Step의 수
+        parser.add_argument('--total-steps', default=9000, type=int) # iteration마다 Scheduler가 적용되기에, Epoch가 아닌, Total-step을 정의
+        parser.add_argument('--eval-step', type=int, default=300) # Evaluation Step의 수
         parser.add_argument('--lr', type=float, default=0.03) # Learning rate
         parser.add_argument('--weight-decay', type=float, default=5e-4) # Weight Decay 정도
         parser.add_argument('--nesterov', action='store_true', default=True) # Nesterov Momentum
