@@ -17,6 +17,8 @@
 
 **준지도 학습의 대표적인 방법론에 대한 한 줄 설명** 
 
+- 자세한 설명은 방법론을 클릭하면 확인할 수 있다.
+
 2. [MixMatch](https://github.com/junginkim23/Business_Analytics_tutorial/blob/master/Semi-supervised_Learning/pdf/MixMatch.pdf)
 - 기존 준지도 학습 방법 Consistency Regularization, Entropy Minimization, Traditional Regularization (Mix Up)을 결합한 방법론 
 
